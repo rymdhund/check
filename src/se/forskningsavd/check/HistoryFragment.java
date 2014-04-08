@@ -1,7 +1,8 @@
 package se.forskningsavd.check;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import android.support.v4.app.Fragment;
 
-public class HistoryFragment extends SherlockFragment {
+
+public class HistoryFragment extends Fragment {
 
 }

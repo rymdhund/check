@@ -52,7 +52,7 @@ public class ReminderDataSource {
 		String where = DatabaseHelper.COLUMN_REMINDERS_ID + "=" + reminder.getDbId();
 		ContentValues values = new ContentValues();
 		values.put(DatabaseHelper.COLUMN_REMINDERS_NAME, reminder.getName());
-		values.put(DatabaseHelper.COLUMN_REMINDERS_DAY_INTERVAL, reminder.getName());
+		values.put(DatabaseHelper.COLUMN_REMINDERS_DAY_INTERVAL, reminder.getDayInterval());
 		values.put(DatabaseHelper.COLUMN_REMINDERS_COUNT, reminder.getCheckCount());
 		values.put(DatabaseHelper.COLUMN_REMINDERS_MAX_COUNT, reminder.getMaxCheckCount());
 		values.put(DatabaseHelper.COLUMN_REMINDERS_COLOR, reminder.getColor());
@@ -64,7 +64,7 @@ public class ReminderDataSource {
 		
 		ContentValues values = new ContentValues();
 		values.put(DatabaseHelper.COLUMN_REMINDERS_NAME, reminder.getName());
-		values.put(DatabaseHelper.COLUMN_REMINDERS_DAY_INTERVAL, reminder.getName());
+		values.put(DatabaseHelper.COLUMN_REMINDERS_DAY_INTERVAL, reminder.getDayInterval());
 		values.put(DatabaseHelper.COLUMN_REMINDERS_COUNT, reminder.getCheckCount());
 		values.put(DatabaseHelper.COLUMN_REMINDERS_MAX_COUNT, reminder.getMaxCheckCount());
 		values.put(DatabaseHelper.COLUMN_REMINDERS_COLOR, reminder.getColor());
@@ -105,14 +105,9 @@ public class ReminderDataSource {
 		int color = cursor.getInt(5);
 		int count = getCheckCount(id);
 		
-		
-		
 		Reminder r = new Reminder(name, dayInterval, count, maxCount, color, id);
-		
 		r.setLastChecked(getLastChecked(id));
 
-		
-		
 		return r;
 	}
 	

@@ -2,14 +2,15 @@ package se.forskningsavd.check;
 
 import java.util.List;
 
-import com.actionbarsherlock.app.SherlockFragment;
-
 import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Reminder;
 import se.forskningsavd.check.model.ReminderList;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -21,10 +22,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
-public class HomeFragment extends SherlockFragment {
+public class HomeFragment extends Fragment {
 	private static final String TAG = "HomeFragment";
 	
 	private ReminderArrayAdapter mReminderAdapter;
@@ -50,7 +50,6 @@ public class HomeFragment extends SherlockFragment {
 		lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parentAdapter, View view, int position,
 					long id) {
-				Toast.makeText(getActivity(), "Item with id ["+id+"] - Position ["+position+"]", Toast.LENGTH_SHORT).show();
 				Reminder r = mReminderAdapter.getItem(position);
 				dataSource.saveCheck(r);
 				mReminderAdapter.notifyDataSetChanged();
@@ -61,13 +60,6 @@ public class HomeFragment extends SherlockFragment {
         return view;
     }
 	
-//	@Override
-//	public void onCreate(Bundle savedInstanceState) {
-//		super.onCreate(savedInstanceState);
-//		setContentView(R.layout.activity_main);
-//
-//	}
-
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
@@ -78,7 +70,7 @@ public class HomeFragment extends SherlockFragment {
 		Reminder r =  mReminderAdapter.getItem(aInfo.position);
 
 		menu.setHeaderTitle("Options for " + r.getName());
-		menu.add(1, 1, 1, "Details");
+		menu.add(1, 1, 1, "Edit");
 		menu.add(1, 2, 2, "Uncheck");
 		menu.add(1, 3, 3, "Delete");
 	}
@@ -87,9 +79,17 @@ public class HomeFragment extends SherlockFragment {
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		int itemId = item.getItemId();
-		Toast.makeText(getActivity(), "Item id ["+itemId+"]", Toast.LENGTH_SHORT).show();
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-		if(itemId == 2){
+		
+		Log.d(TAG, "context menu selected. Item "+itemId);
+
+		if(itemId == 1){
+			Reminder r = mReminders.get((int)info.id);
+			
+			Intent i = new Intent(getActivity(), NewReminder.class);
+			i.putExtra(EditFragment.EXTRA_REMINDER, r);
+			startActivity(i);
+		}else if(itemId == 2){
 			Reminder r = mReminders.get((int)info.id);
 			dataSource.uncheckCheck(r);
 			mReminderAdapter.notifyDataSetChanged();
@@ -139,6 +139,9 @@ public class HomeFragment extends SherlockFragment {
 			else doneView.setText("");
 
 			((TextView) rowView.findViewById(R.id.name_textview)).setText(r.getName());
+			
+			rowView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
+			//setBackgroundColor(r.getColor());
 
 			return rowView;
 		}

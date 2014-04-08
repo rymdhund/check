@@ -1,8 +1,11 @@
 package se.forskningsavd.check.model;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Reminder {
+public class Reminder implements Serializable{
+	private static final long serialVersionUID = 1L;
+	
 	private String name;
 	private int dayInterval;
 	private int count;
@@ -77,5 +80,13 @@ public class Reminder {
 	public boolean isDue(){
 		if(lastChecked == null) return true;
 		return TimeUtils.daysFrom(lastChecked) >= dayInterval;
+	}
+
+	public int getDayInterval() {
+		return dayInterval;
+	}
+
+	public void setColor(int color) {
+		this.color = color;
 	}
 }
