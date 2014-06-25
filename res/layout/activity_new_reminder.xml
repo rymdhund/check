@@ -1,40 +1,77 @@
-<LinearLayout 
+<RelativeLayout
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical">
+    android:layout_margin="5dp">
      <EditText
         android:id="@+id/name_edittext"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:hint="@string/name_hint"
-        android:inputType="text" />
-    
-    <EditText
-        android:id="@+id/interval_edittext"
-        android:layout_width="fill_parent"
+        android:inputType="text"
+        />
+
+    <TextView
+        android:id="@+id/text3"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/interval_hint"
-        android:inputType="number" />
-    
+        android:layout_below="@id/name_edittext"
+        android:text="check"/>
     <EditText
         android:id="@+id/max_count_edittext"
-        android:layout_width="fill_parent"
+        android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:hint="@string/max_count_hint"
-        android:inputType="number"/>
-    
+        android:inputType="number"
+        android:layout_alignBaseline="@id/text3"
+        android:layout_toRightOf="@id/text3"/>
+    <TextView
+        android:id="@+id/text4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/text3"
+        android:layout_toRightOf="@id/max_count_edittext"
+        android:text="times"/>
+
+    <CheckBox
+        android:id="@+id/interval_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text3"/>
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/interval_checkbox"
+        android:layout_toRightOf="@id/interval_checkbox"
+        android:text="every"/>
+    <EditText
+        android:id="@+id/interval_edittext"
+        android:layout_width="60dp"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:layout_alignBaseline="@id/text1"
+        android:layout_toRightOf="@id/text1"/>
+    <TextView
+        android:id="@+id/text2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/text1"
+        android:layout_toRightOf="@id/interval_edittext"
+        android:text="days"/>
+
     <TextView
         android:id="@+id/color_view"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="color" />
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:text="color"
+        android:layout_below="@id/interval_checkbox"/>
     
     <Button
         android:id="@+id/ok_button"
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ok" 
-        android:onClick="makeNew"/>
+        android:onClick="makeNew"
+        android:layout_below="@id/color_view"/>
 
-</LinearLayout>
+</RelativeLayout>

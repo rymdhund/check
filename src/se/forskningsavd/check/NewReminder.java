@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 public class NewReminder extends Activity {
 	private static final String TAG = "NewReminder";
@@ -29,9 +30,11 @@ public class NewReminder extends Activity {
 			((EditText)findViewById(R.id.name_edittext)).setText(reminder.getName());
 			((EditText)findViewById(R.id.interval_edittext)).setText(""+reminder.getDayInterval());
 			((EditText)findViewById(R.id.max_count_edittext)).setText(""+reminder.getMaxCheckCount());
+            findViewById(R.id.color_view).setBackgroundColor(reminder.getColor());
 		}else{
 			((EditText)findViewById(R.id.interval_edittext)).setText("1");
 			((EditText)findViewById(R.id.max_count_edittext)).setText("1");
+            findViewById(R.id.color_view).setBackgroundColor(randomColor());
 		}
 	}
 
@@ -49,8 +52,9 @@ public class NewReminder extends Activity {
 				((EditText)findViewById(R.id.interval_edittext)).getText().toString());
 		int maxCount = Integer.parseInt(
 				((EditText)findViewById(R.id.max_count_edittext)).getText().toString());
+        int color = findViewById(R.id.color_view).getDrawingCacheBackgroundColor();
 		
-		Reminder r = new Reminder(name, interval, 0, maxCount, randomColor());
+		Reminder r = new Reminder(name, interval, 0, maxCount, color);
 		if(reminder != null){
 			r.setDbId(reminder.getDbId());
 			r.setColor(reminder.getColor());

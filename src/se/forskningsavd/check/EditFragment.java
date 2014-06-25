@@ -1,51 +1,53 @@
 package se.forskningsavd.check;
 
-import java.util.List;
-
-import se.forskningsavd.check.database.ReminderDataSource;
-import se.forskningsavd.check.model.Reminder;
-import se.forskningsavd.check.model.ReminderList;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
-public class EditFragment extends Fragment {
+import java.util.ArrayList;
+import java.util.List;
+
+import se.forskningsavd.check.database.DataChangedListener;
+import se.forskningsavd.check.database.ReminderDataSource;
+import se.forskningsavd.check.model.Reminder;
+
+public class EditFragment extends Fragment implements DataChangedListener{
 	private static final String TAG = "EditFragment";
 
 	protected static final String EXTRA_REMINDER = "REMINDER";
+    //private final TabbedActivity mTabbedActivity;
 
-	private ReminderArrayAdapter mReminderAdapter;
-	private List<Reminder> mReminders = new ReminderList();
-
+    private EditReminderAdapter mReminderAdapter;
 	private ReminderDataSource dataSource;
+    private List<DataChangedListener> dataChangedListeners = new ArrayList<DataChangedListener>();
 
-	@Override
+    @Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 
-		View view = inflater.inflate(R.layout.home_fragment, container, false);
+		View view = inflater.inflate(R.layout.edit_fragment, container, false);
 
 		ListView lv = (ListView) view.findViewById(R.id.reminder_listview);
+        //lv.addHeaderView();
 
 		dataSource = new ReminderDataSource(getActivity());
 		dataSource.open();
 
-		initList();
-		mReminderAdapter = new ReminderArrayAdapter(getActivity(), mReminders);
+		mReminderAdapter = new EditReminderAdapter(getActivity(), dataSource);
 
 		lv.setAdapter(mReminderAdapter);
 		lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -83,47 +85,78 @@ public class EditFragment extends Fragment {
 		Toast.makeText(getActivity(), "Item id ["+itemId+"]", Toast.LENGTH_SHORT).show();
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 		if(itemId == 3){
-			Log.d(TAG, "Deleting "+info.id);
-			Reminder r = mReminders.get((int)info.id);
-			dataSource.deleteReminder(r.getDbId());
-			mReminders.remove((int)info.id);
+			Log.d(TAG, "Deleting " + info.id);
+			dataSource.deleteReminder(info.id);
 			mReminderAdapter.notifyDataSetChanged();
+            notifyDataChangedListeners();
 		}
 		return true;
 	}
 
-	private void initList() {
-		mReminders = dataSource.getAllReminders();
-	}
+    public void addDataChangedListener(DataChangedListener dcl){
+        dataChangedListeners.add(dcl);
+    }
 
-	private class ReminderArrayAdapter extends ArrayAdapter<Reminder> {
-		private final Context mContext;
-		private final List<Reminder> mReminders;
+    @Override
+    public void onDataChanged() {
+        mReminderAdapter.notifyDataSetChanged();
+    }
 
-		public ReminderArrayAdapter(Context context, List<Reminder> values) {
-			super(context, R.layout.reminder_edit_row, values);
-			mContext = context;
-			mReminders = values;
-		}
+    private void notifyDataChangedListeners(){
+        for(DataChangedListener dcl: dataChangedListeners) dcl.onDataChanged();
+    }
 
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			LayoutInflater inflater = (LayoutInflater) mContext
-					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			View rowView = inflater.inflate(R.layout.reminder_edit_row, parent, false);
-			Reminder r = mReminders.get(position);
+    private class EditReminderAdapter extends BaseAdapter {
+        private final Context mContext;
+        private final ReminderDataSource mDataSource;
+        private List<Reminder> mList;
 
-			TextView nameView = (TextView) rowView.findViewById(R.id.name_textview);
-			nameView.setText(r.getName());
+        public EditReminderAdapter(Context context, ReminderDataSource dataSource){
+            mContext = context;
+            mDataSource = dataSource;
+            mList = dataSource.getAllReminders();
+        }
 
-			TextView intervalView = ((TextView) rowView.findViewById(R.id.interval_textview));
-			intervalView.setText(""+r.getDayInterval());
-			
-			((TextView) rowView.findViewById(R.id.color_textview)).setBackgroundColor(r.getColor());
-			
-			((TextView) rowView.findViewById(R.id.max_count_textview)).setText(""+r.getMaxCheckCount());
+        @Override
+        public void notifyDataSetChanged(){
+            mList = mDataSource.getAllReminders();
+            super.notifyDataSetChanged();
+        }
 
-			return rowView;
-		}
-	}
+        @Override
+        public int getCount() {
+            return mList.size();
+        }
+
+        @Override
+        public Reminder getItem(int position) {
+            return mList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return mList.get(position).getDbId();
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            LayoutInflater inflater = (LayoutInflater) mContext
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View rowView = inflater.inflate(R.layout.reminder_edit_row, parent, false);
+            Reminder r = getItem(position);
+
+            TextView nameView = (TextView) rowView.findViewById(R.id.name_textview);
+            nameView.setText(r.getName());
+            nameView.setBackgroundColor(r.getColor());
+
+            TextView intervalView = ((TextView) rowView.findViewById(R.id.interval_textview));
+            intervalView.setText(""+r.getDayInterval());
+
+            //((TextView) rowView.findViewById(R.id.color_textview)).setBackgroundColor(r.getColor());
+
+            ((TextView) rowView.findViewById(R.id.max_count_textview)).setText(""+r.getMaxCheckCount());
+
+            return rowView;
+        }
+    }
 }

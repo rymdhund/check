@@ -29,6 +29,9 @@ public class TabbedActivity extends FragmentActivity implements
 	 * {@link android.support.v4.app.FragmentStatePagerAdapter}.
 	 */
 	SectionsPagerAdapter mSectionsPagerAdapter;
+    private HomeFragment mHomeFragment;
+    private EditFragment mEditFragment;
+    private HistoryFragment mHistoryFragment;
 
 	/**
 	 * The {@link ViewPager} that will host the section contents.
@@ -42,6 +45,13 @@ public class TabbedActivity extends FragmentActivity implements
 
 		final ActionBar actionBar = getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+
+        mHomeFragment = new HomeFragment();
+        mEditFragment = new EditFragment();
+        mHistoryFragment = new HistoryFragment();
+
+        mHomeFragment.addDataChangedListener(mEditFragment);
+        mEditFragment.addDataChangedListener(mHomeFragment);
 
 		mSectionsPagerAdapter = new SectionsPagerAdapter(
 				getSupportFragmentManager());
@@ -104,23 +114,19 @@ public class TabbedActivity extends FragmentActivity implements
 	 * one of the sections/tabs/pages.
 	 */
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
-
-		public SectionsPagerAdapter(FragmentManager fm) {
+        public SectionsPagerAdapter(FragmentManager fm) {
 			super(fm);
 		}
 
 		@Override
 		public Fragment getItem(int position) {
-			// getItem is called to instantiate the fragment for the given page.
-			// Return a DummySectionFragment (defined as a static inner class
-			// below) with the page number as its lone argument.
 			switch (position) {
             case 0:
-                return new HomeFragment();
+                return mHomeFragment;
             case 1:
-                return new EditFragment();
+                return mEditFragment;
             case 2:
-                return new HistoryFragment();
+                return mHistoryFragment;
             default:
                 throw new ArrayIndexOutOfBoundsException();
 			}
@@ -145,5 +151,7 @@ public class TabbedActivity extends FragmentActivity implements
 			}
 			return null;
 		}
+
+
 	}
 }

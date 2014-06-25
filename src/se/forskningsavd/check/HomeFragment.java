@@ -1,7 +1,9 @@
 package se.forskningsavd.check;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import se.forskningsavd.check.database.DataChangedListener;
 import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Reminder;
 import se.forskningsavd.check.model.ReminderList;
@@ -20,17 +22,19 @@ import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements DataChangedListener {
 	private static final String TAG = "HomeFragment";
-	
-	private ReminderArrayAdapter mReminderAdapter;
-	private List<Reminder> mReminders = new ReminderList();
+    //private final TabbedActivity mTabbedActivity;
+
+    private HomeReminderAdapter mReminderAdapter;
 
 	private ReminderDataSource dataSource;
+    private ArrayList<DataChangedListener> dataChangedListeners = new ArrayList<DataChangedListener>();
 
 	@Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -44,7 +48,7 @@ public class HomeFragment extends Fragment {
 		dataSource.open();
 
 		initList();
-		mReminderAdapter = new ReminderArrayAdapter(getActivity(), mReminders);
+        mReminderAdapter = new HomeReminderAdapter(getActivity(), dataSource);
 
 		lv.setAdapter(mReminderAdapter);
 		lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -53,6 +57,7 @@ public class HomeFragment extends Fragment {
 				Reminder r = mReminderAdapter.getItem(position);
 				dataSource.saveCheck(r);
 				mReminderAdapter.notifyDataSetChanged();
+                notifyDataChangedListeners();
 			}
 		});
 		registerForContextMenu(lv);
@@ -80,70 +85,106 @@ public class HomeFragment extends Fragment {
 	public boolean onContextItemSelected(MenuItem item) {
 		int itemId = item.getItemId();
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-		
-		Log.d(TAG, "context menu selected. Item "+itemId);
+		Log.d(TAG, "context menu selected. Item "+itemId+" info.id: "+info.id);
 
 		if(itemId == 1){
-			Reminder r = mReminders.get((int)info.id);
-			
+			Reminder r = mReminderAdapter.getItem(info.position);
 			Intent i = new Intent(getActivity(), NewReminder.class);
 			i.putExtra(EditFragment.EXTRA_REMINDER, r);
 			startActivity(i);
 		}else if(itemId == 2){
-			Reminder r = mReminders.get((int)info.id);
-			dataSource.uncheckCheck(r);
+			dataSource.uncheckCheck(info.id);
 			mReminderAdapter.notifyDataSetChanged();
+            notifyDataChangedListeners();
 		}else if(itemId == 3){
 			Log.d(TAG, "Deleting "+info.id);
-			Reminder r = mReminders.get((int)info.id);
-			dataSource.deleteReminder(r.getDbId());
-			mReminders.remove((int)info.id);
+			dataSource.deleteReminder(info.id);
 			mReminderAdapter.notifyDataSetChanged();
+            notifyDataChangedListeners();
 		}
+
 		return true;
 	}
 
 	private void initList() {
-		mReminders = dataSource.getAllReminders();
-
-		if(mReminders.isEmpty()){
+		if(dataSource.getAllReminders().isEmpty()){
 			Log.d(TAG, "adding reminders");
 			dataSource.saveReminder(new Reminder("backup", 7, Color.GREEN));
 			dataSource.saveReminder(new Reminder("springa", 3, Color.YELLOW));
 			dataSource.saveReminder(new Reminder("vatten", 3, 0, 5, Color.BLUE));
 			dataSource.saveReminder(new Reminder("ring", 0, Color.MAGENTA));
-			mReminders = dataSource.getAllReminders();
 		}
 	}
 
-	private class ReminderArrayAdapter extends ArrayAdapter<Reminder> {
-		private final Context mContext;
-		private final List<Reminder> mReminders;
+    public void addDataChangedListener(DataChangedListener dcl){
+        dataChangedListeners.add(dcl);
+    }
 
-		public ReminderArrayAdapter(Context context, List<Reminder> values) {
-			super(context, R.layout.reminder_row, values);
-			mContext = context;
-			mReminders = values;
-		}
+    @Override
+    public void onDataChanged() {
+        mReminderAdapter.notifyDataSetChanged();
+    }
 
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			LayoutInflater inflater = (LayoutInflater) mContext
-					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			View rowView = inflater.inflate(R.layout.reminder_row, parent, false);
-			Reminder r = mReminders.get(position);
+    private void notifyDataChangedListeners(){
+        for(DataChangedListener dcl: dataChangedListeners) dcl.onDataChanged();
+    }
 
-			TextView doneView = (TextView) rowView.findViewById(R.id.done_textview);
-			if(r.isDone()) doneView.setText("[done]");
-			else if(r.getCheckCount() > 0) doneView.setText(""+r.getCheckCount()+"/"+r.getMaxCheckCount());
-			else doneView.setText("");
+    private class HomeReminderAdapter extends BaseAdapter {
+        private final Context mContext;
+        private final ReminderDataSource mDataSource;
+        private List<Reminder> mList;
 
-			((TextView) rowView.findViewById(R.id.name_textview)).setText(r.getName());
-			
-			rowView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
-			//setBackgroundColor(r.getColor());
+        public HomeReminderAdapter(Context context, ReminderDataSource dataSource){
+            mContext = context;
+            mDataSource = dataSource;
+            mList = dataSource.getAllReminders();
+        }
 
-			return rowView;
-		}
-	}
+        @Override
+        public boolean hasStableIds(){
+            // We have db ids that are stable, tell list-view so it can do more magic
+            return true;
+        }
+
+        @Override
+        public void notifyDataSetChanged(){
+            mList = dataSource.getAllReminders();
+            super.notifyDataSetChanged();
+        }
+
+        @Override
+        public int getCount() {
+            return mList.size();
+        }
+
+        @Override
+        public Reminder getItem(int position) {
+            return mList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return mList.get(position).getDbId();
+        }
+
+        @Override
+        public View getView(int position, View view, ViewGroup parent) {
+            LayoutInflater inflater = (LayoutInflater) mContext
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View rowView = inflater.inflate(R.layout.reminder_row, parent, false);
+            Reminder r = getItem(position);
+
+            TextView doneView = (TextView) rowView.findViewById(R.id.done_textview);
+            if(r.isDone()) doneView.setText("[done]");
+            else if(r.getCheckCount() > 0) doneView.setText(""+r.getCheckCount()+"/"+r.getMaxCheckCount());
+            else doneView.setText("");
+
+            ((TextView) rowView.findViewById(R.id.name_textview)).setText(r.getName());
+
+            rowView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
+            //setBackgroundColor(r.getColor());
+
+            return rowView;
+        }
+    }
 }
