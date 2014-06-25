@@ -36,28 +36,35 @@
         android:id="@+id/interval_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/text3"/>
+        android:layout_below="@id/text3"
+        android:onClick="onIntervalCheckBoxClick"/>
+
     <TextView
         android:id="@+id/text1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@id/interval_checkbox"
         android:layout_toRightOf="@id/interval_checkbox"
-        android:text="every"/>
+        android:enabled="false"
+        android:text="every" />
+
     <EditText
         android:id="@+id/interval_edittext"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:inputType="number"
         android:layout_alignBaseline="@id/text1"
-        android:layout_toRightOf="@id/text1"/>
+        android:layout_toRightOf="@id/text1"
+        android:enabled="false"
+        android:inputType="number" />
+
     <TextView
         android:id="@+id/text2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@id/text1"
         android:layout_toRightOf="@id/interval_edittext"
-        android:text="days"/>
+        android:enabled="false"
+        android:text="days" />
 
     <TextView
         android:id="@+id/color_view"
