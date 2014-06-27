@@ -9,7 +9,7 @@
     <string name="interval_hint">interval</string>
     <string name="max_count_hint">times per day</string>
     <string name="action_new_reminder">new</string>
-    <string name="title_activity_tabbed">TabbedActivity</string>
+    <string name="title_activity_tabbed">Check</string>
     <string name="title_section1">Todo</string>
     <string name="title_section2">All</string>
     <string name="title_section3">History</string>
