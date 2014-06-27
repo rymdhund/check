@@ -47,7 +47,6 @@ public class HomeFragment extends Fragment implements DataChangedListener {
 		dataSource = new ReminderDataSource(getActivity());
 		dataSource.open();
 
-		initList();
         mReminderAdapter = new HomeReminderAdapter(getActivity(), dataSource);
 
 		lv.setAdapter(mReminderAdapter);
@@ -106,16 +105,6 @@ public class HomeFragment extends Fragment implements DataChangedListener {
 		return true;
 	}
 
-	private void initList() {
-		if(dataSource.getAllReminders().isEmpty()){
-			Log.d(TAG, "adding reminders");
-			dataSource.saveReminder(new Reminder("backup", 7, Color.GREEN));
-			dataSource.saveReminder(new Reminder("springa", 3, Color.YELLOW));
-			dataSource.saveReminder(new Reminder("vatten", 3, 0, 5, Color.BLUE));
-			dataSource.saveReminder(new Reminder("ring", 0, Color.MAGENTA));
-		}
-	}
-
     public void addDataChangedListener(DataChangedListener dcl){
         dataChangedListeners.add(dcl);
     }
@@ -137,7 +126,7 @@ public class HomeFragment extends Fragment implements DataChangedListener {
         public HomeReminderAdapter(Context context, ReminderDataSource dataSource){
             mContext = context;
             mDataSource = dataSource;
-            mList = dataSource.getAllReminders();
+            mList = dataSource.getDueReminders();
         }
 
         @Override
@@ -148,7 +137,7 @@ public class HomeFragment extends Fragment implements DataChangedListener {
 
         @Override
         public void notifyDataSetChanged(){
-            mList = dataSource.getAllReminders();
+            mList = dataSource.getDueReminders();
             super.notifyDataSetChanged();
         }
 

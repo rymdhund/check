@@ -24,7 +24,7 @@ public class ReminderList extends AbstractList<Reminder>{
 		}
 		return true;
 	}
-	
+
 	@Override
 	public Reminder get(int idx) {
 		Log.d(TAG, "Get "+idx);

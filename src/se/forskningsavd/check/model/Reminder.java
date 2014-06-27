@@ -78,8 +78,16 @@ public class Reminder implements Serializable{
 	}
 	
 	public boolean isDue(){
-		if(lastChecked == null) return true;
-		return TimeUtils.daysFrom(lastChecked) >= dayInterval;
+		if(lastChecked == null) return true;            // never checked it
+        if(dayInterval == 0) return false;              // one time check, don't show again
+        if(maxCount > 1) {
+            if(TimeUtils.daysFrom(lastChecked) == 0){
+                return !isDone();
+            }
+            return TimeUtils.daysFrom(lastChecked) >= dayInterval;
+        }else {
+            return TimeUtils.daysFrom(lastChecked) >= dayInterval;
+        }
 	}
 
 	public int getDayInterval() {

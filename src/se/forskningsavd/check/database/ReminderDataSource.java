@@ -235,4 +235,19 @@ public class ReminderDataSource {
 
         return checks;
     }
+
+    public List<Reminder> getDueReminders() {
+        // TODO: optimize
+        Log.d(TAG, "Getting due reminders");
+
+        List<Reminder> all = getAllReminders();
+        List<Reminder> due = new ArrayList<Reminder>();
+
+        for(Reminder r: all){
+            if(r.isDue()){
+                due.add(r);
+            }
+        }
+        return due;
+    }
 }
