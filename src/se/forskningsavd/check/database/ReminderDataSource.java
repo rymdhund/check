@@ -1,8 +1,10 @@
 package se.forskningsavd.check.database;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import se.forskningsavd.check.model.Check;
 import se.forskningsavd.check.model.Reminder;
 import se.forskningsavd.check.model.ReminderList;
 import se.forskningsavd.check.model.TimeUtils;
@@ -16,7 +18,14 @@ import android.util.Log;
 
 public class ReminderDataSource {
 	private static final String TAG = "RemindersDataSource";
-	
+
+    private final String GET_CHECK_HISTORY_QUERY =
+            "SELECT c.*,r.name, r.color FROM "+DatabaseHelper.TABLE_CHECKS+" c "
+            + "INNER JOIN "+DatabaseHelper.TABLE_REMINDERS+" r "
+            + "ON c."+DatabaseHelper.COLUMN_CHECKS_REMINDER_ID+"=r."+DatabaseHelper.COLUMN_REMINDERS_ID
+            + " ORDER BY c.time DESC";
+
+
 	private SQLiteDatabase database;
 	private DatabaseHelper dbHelper;
 	
@@ -200,6 +209,7 @@ public class ReminderDataSource {
         }
         cursor.close();
     }
+
 	/**
 	 * Remove last check for this reminder
 	 * 
@@ -211,4 +221,18 @@ public class ReminderDataSource {
 		r.setLastChecked(getLastChecked(r.getDbId()));
 		r.setCheckCount(getCheckCount(r.getDbId()));
 	}
+
+    public List<Check> getAllChecks() {
+        ArrayList<Check> checks = new ArrayList<Check>();
+        Cursor cursor = database.rawQuery(GET_CHECK_HISTORY_QUERY, null);
+
+        cursor.moveToFirst();
+        while(!cursor.isAfterLast()){
+            Check c = new Check(cursor.getString(3), cursor.getInt(4), cursor.getLong(2), cursor.getLong(0));
+            checks.add(c);
+            cursor.moveToNext();
+        }
+
+        return checks;
+    }
 }
