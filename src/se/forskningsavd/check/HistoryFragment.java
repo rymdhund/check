@@ -2,6 +2,7 @@ package se.forskningsavd.check;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.format.DateUtils;
@@ -26,6 +27,7 @@ import se.forskningsavd.check.database.DataChangedListener;
 import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Check;
 import se.forskningsavd.check.model.Reminder;
+import se.forskningsavd.check.model.TimeUtils;
 
 public class HistoryFragment extends Fragment implements DataChangedListener{
     private static final String TAG = "EditFragment";
@@ -111,6 +113,7 @@ public class HistoryFragment extends Fragment implements DataChangedListener{
         @Override
         public void notifyDataSetChanged(){
             mList = mDataSource.getAllChecks();
+
             super.notifyDataSetChanged();
         }
 
@@ -135,7 +138,12 @@ public class HistoryFragment extends Fragment implements DataChangedListener{
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             View rowView = inflater.inflate(R.layout.check_history_row, parent, false);
             Check check = getItem(position);
-            rowView.setBackgroundColor(check.getReminderColor());
+
+            boolean showSeparator =
+                    position == 0 ||
+                    !TimeUtils.isSameDate(getItem(position - 1).getTimestamp(), check.getTimestamp());
+
+            rowView.findViewById(R.id.check_container).setBackgroundColor(check.getReminderColor());
 
             TextView nameView = (TextView) rowView.findViewById(R.id.check_name);
             nameView.setText(check.getReminderName());
@@ -149,6 +157,14 @@ public class HistoryFragment extends Fragment implements DataChangedListener{
                     check.getTimestamp(), System.currentTimeMillis(),
                     DateUtils.MINUTE_IN_MILLIS, flags));
 
+            TextView separator = (TextView)rowView.findViewById(R.id.separator);
+            if(showSeparator){
+                separator.setText(TimeUtils.getRelativeDay(check.getTimestamp()));
+                separator.setBackgroundColor(Color.GRAY);
+                separator.setVisibility(View.VISIBLE);
+            }else{
+                separator.setVisibility(View.GONE);
+            }
             return rowView;
         }
     }

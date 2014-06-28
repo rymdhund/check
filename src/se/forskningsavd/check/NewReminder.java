@@ -21,7 +21,6 @@ public class NewReminder extends Activity implements ColorPickerDialog.OnColorCh
     private static final String STATE_COLOR = "reminderColor";
 
     private Reminder reminder;
-
     private int color;
 
 	@Override
