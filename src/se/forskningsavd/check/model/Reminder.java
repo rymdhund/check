@@ -97,4 +97,21 @@ public class Reminder implements Serializable{
 	public void setColor(int color) {
 		this.color = color;
 	}
+
+    public String getDescription() {
+        StringBuilder desc = new StringBuilder();
+        if(dayInterval == 0){
+            // Non-repeated multicheck is a special case
+            if(maxCount > 1) return String.format("%d times", maxCount);
+            desc.append("Once");
+        }else if(dayInterval == 1){
+            desc.append("Every day");
+        }else{
+            desc.append(String.format("Every %d days", dayInterval));
+        }
+        if(maxCount > 1){
+            desc.append(String.format(", %d times", maxCount));
+        }
+        return desc.toString();
+    }
 }

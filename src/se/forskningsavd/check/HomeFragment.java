@@ -171,7 +171,6 @@ public class HomeFragment extends Fragment implements DataChangedListener {
             ((TextView) rowView.findViewById(R.id.name_textview)).setText(r.getName());
 
             rowView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
-            //setBackgroundColor(r.getColor());
 
             return rowView;
         }

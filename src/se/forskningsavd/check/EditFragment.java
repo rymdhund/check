@@ -2,6 +2,7 @@ package se.forskningsavd.check;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -112,9 +113,9 @@ public class EditFragment extends Fragment implements DataChangedListener{
         private List<Reminder> mList;
 
         public EditReminderAdapter(Context context, ReminderDataSource dataSource){
-            mContext = context;
+            mContext =    context;
             mDataSource = dataSource;
-            mList = dataSource.getAllReminders();
+            mList =       dataSource.getAllReminders();
         }
 
         @Override
@@ -145,16 +146,10 @@ public class EditFragment extends Fragment implements DataChangedListener{
             View rowView = inflater.inflate(R.layout.reminder_edit_row, parent, false);
             Reminder r = getItem(position);
 
-            TextView nameView = (TextView) rowView.findViewById(R.id.name_textview);
-            nameView.setText(r.getName());
-            nameView.setBackgroundColor(r.getColor());
+            ((TextView)rowView.findViewById(R.id.name_textview)        ).setText(r.getName()       );
+            ((TextView) rowView.findViewById(R.id.description_textview)).setText(r.getDescription());
 
-            TextView intervalView = ((TextView) rowView.findViewById(R.id.interval_textview));
-            intervalView.setText(""+r.getDayInterval());
-
-            //((TextView) rowView.findViewById(R.id.color_textview)).setBackgroundColor(r.getColor());
-
-            ((TextView) rowView.findViewById(R.id.max_count_textview)).setText(""+r.getMaxCheckCount());
+            rowView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
 
             return rowView;
         }

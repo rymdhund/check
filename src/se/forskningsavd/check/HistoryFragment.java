@@ -3,6 +3,7 @@ package se.forskningsavd.check;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.format.DateUtils;
@@ -143,7 +144,9 @@ public class HistoryFragment extends Fragment implements DataChangedListener{
                     position == 0 ||
                     !TimeUtils.isSameDate(getItem(position - 1).getTimestamp(), check.getTimestamp());
 
-            rowView.findViewById(R.id.check_container).setBackgroundColor(check.getReminderColor());
+            rowView.findViewById(R.id.check_container).getBackground()
+                   .setColorFilter(check.getReminderColor(), PorterDuff.Mode.MULTIPLY);
+
 
             TextView nameView = (TextView) rowView.findViewById(R.id.check_name);
             nameView.setText(check.getReminderName());

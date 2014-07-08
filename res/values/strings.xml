@@ -11,7 +11,7 @@
     <string name="action_new_reminder">new</string>
     <string name="title_activity_tabbed">Check</string>
     <string name="title_section1">Todo</string>
-    <string name="title_section2">All</string>
+    <string name="title_section2">Manage</string>
     <string name="title_section3">History</string>
 
 </resources>
