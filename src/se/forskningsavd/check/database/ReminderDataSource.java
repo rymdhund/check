@@ -189,10 +189,16 @@ public class ReminderDataSource {
 		r.check();
 	}
 
+    public void deleteCheck(long dbId){
+        Log.d(TAG, "delete delete "+dbId);
+        String deleteWhere = DatabaseHelper.COLUMN_CHECKS_ID + "="+dbId;
+        database.delete(DatabaseHelper.TABLE_CHECKS, deleteWhere, null);
+    }
+
     /**
      * Remove last check for this reminder
      *
-     * @param dbId
+     * @param dbId Id of reminder to uncheck
      */
     public void uncheckCheck(long dbId) {
         String idColumn[] = {DatabaseHelper.COLUMN_CHECKS_ID};
@@ -232,6 +238,7 @@ public class ReminderDataSource {
             checks.add(c);
             cursor.moveToNext();
         }
+        cursor.close();
 
         return checks;
     }

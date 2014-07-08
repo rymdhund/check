@@ -31,14 +31,12 @@ import se.forskningsavd.check.model.Reminder;
 import se.forskningsavd.check.model.TimeUtils;
 
 public class HistoryFragment extends Fragment implements DataChangedListener{
-    private static final String TAG = "EditFragment";
+    private static final int    FRAGMENT_ID = 3;
+    private static final String TAG         = "EditFragment";
 
-    protected static final String EXTRA_REMINDER = "REMINDER";
-    //private final TabbedActivity mTabbedActivity;
-
-    private HistoryAdapter mAdapter;
-    private ReminderDataSource dataSource;
-    private List<DataChangedListener> dataChangedListeners = new ArrayList<DataChangedListener>();
+    private HistoryAdapter              mAdapter;
+    private ReminderDataSource          dataSource;
+    private List<DataChangedListener>   dataChangedListeners = new ArrayList<DataChangedListener>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -69,22 +67,25 @@ public class HistoryFragment extends Fragment implements DataChangedListener{
         Check check =  mAdapter.getItem(aInfo.position);
 
         menu.setHeaderTitle("Options for " + check.getReminderName());
-        menu.add(1, 3, 3, "Delete");
+        menu.add(FRAGMENT_ID, 3, 3, "Delete");
     }
 
     // This method is called when user selects an Item in the Context menu
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-        Toast.makeText(getActivity(), "Item id ["+itemId+"]", Toast.LENGTH_SHORT).show();
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-        if(itemId == 3){
-            Log.d(TAG, "Deleting " + info.id);
-            dataSource.deleteReminder(info.id);
-            mAdapter.notifyDataSetChanged();
-            notifyDataChangedListeners();
+        if(item.getGroupId() == FRAGMENT_ID) {
+            int itemId = item.getItemId();
+            Toast.makeText(getActivity(), "Item id [" + itemId + "]", Toast.LENGTH_SHORT).show();
+            AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+            if (itemId == 3) {
+                Log.d(TAG, "Deleting oo " + info.id);
+                dataSource.deleteCheck(info.id);
+                mAdapter.notifyDataSetChanged();
+                notifyDataChangedListeners();
+            }
+            return true;
         }
-        return true;
+        return false;
     }
 
     public void addDataChangedListener(DataChangedListener dcl){
@@ -114,7 +115,6 @@ public class HistoryFragment extends Fragment implements DataChangedListener{
         @Override
         public void notifyDataSetChanged(){
             mList = mDataSource.getAllChecks();
-
             super.notifyDataSetChanged();
         }
 
@@ -137,28 +137,13 @@ public class HistoryFragment extends Fragment implements DataChangedListener{
         public View getView(int position, View convertView, ViewGroup parent) {
             LayoutInflater inflater = (LayoutInflater) mContext
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
             View rowView = inflater.inflate(R.layout.check_history_row, parent, false);
-            Check check = getItem(position);
+            Check check  = getItem(position);
 
             boolean showSeparator =
                     position == 0 ||
                     !TimeUtils.isSameDate(getItem(position - 1).getTimestamp(), check.getTimestamp());
-
-            rowView.findViewById(R.id.check_container).getBackground()
-                   .setColorFilter(check.getReminderColor(), PorterDuff.Mode.MULTIPLY);
-
-
-            TextView nameView = (TextView) rowView.findViewById(R.id.check_name);
-            nameView.setText(check.getReminderName());
-
-            int flags = DateUtils.FORMAT_ABBREV_RELATIVE | DateUtils.FORMAT_ABBREV_TIME;
-            TextView timeView = ((TextView) rowView.findViewById(R.id.check_time));
-            timeView.setText(DateUtils.getRelativeDateTimeString(
-                    getActivity(),check.getTimestamp(), DateUtils.MINUTE_IN_MILLIS,
-                    DateUtils.WEEK_IN_MILLIS, flags));
-            timeView.setText(DateUtils.getRelativeTimeSpanString(
-                    check.getTimestamp(), System.currentTimeMillis(),
-                    DateUtils.MINUTE_IN_MILLIS, flags));
 
             TextView separator = (TextView)rowView.findViewById(R.id.separator);
             if(showSeparator){
@@ -168,6 +153,20 @@ public class HistoryFragment extends Fragment implements DataChangedListener{
             }else{
                 separator.setVisibility(View.GONE);
             }
+
+            ((TextView)rowView.findViewById(R.id.check_name)).setText(check.getReminderName() + check.getDbId());
+
+            int flags = DateUtils.FORMAT_ABBREV_RELATIVE | DateUtils.FORMAT_ABBREV_TIME;
+            TextView timeView = ((TextView) rowView.findViewById(R.id.check_time));
+            timeView.setText(DateUtils.getRelativeTimeSpanString(check.getTimestamp(),
+                                                                 System.currentTimeMillis(),
+                                                                 DateUtils.MINUTE_IN_MILLIS,
+                                                                 flags));
+
+            rowView.findViewById(R.id.check_container)
+                   .getBackground()
+                   .setColorFilter(check.getReminderColor(), PorterDuff.Mode.MULTIPLY);
+
             return rowView;
         }
     }

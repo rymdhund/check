@@ -27,10 +27,10 @@ import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Reminder;
 
 public class EditFragment extends Fragment implements DataChangedListener{
-	private static final String TAG = "EditFragment";
+	private static final String TAG         = "EditFragment";
+    private static final int    FRAGMENT_ID = 2;
 
 	protected static final String EXTRA_REMINDER = "REMINDER";
-    //private final TabbedActivity mTabbedActivity;
 
     private EditReminderAdapter mReminderAdapter;
 	private ReminderDataSource dataSource;
@@ -43,7 +43,6 @@ public class EditFragment extends Fragment implements DataChangedListener{
 		View view = inflater.inflate(R.layout.edit_fragment, container, false);
 
 		ListView lv = (ListView) view.findViewById(R.id.reminder_listview);
-        //lv.addHeaderView();
 
 		dataSource = new ReminderDataSource(getActivity());
 		dataSource.open();
@@ -76,23 +75,25 @@ public class EditFragment extends Fragment implements DataChangedListener{
 		Reminder r =  mReminderAdapter.getItem(aInfo.position);
 
 		menu.setHeaderTitle("Options for " + r.getName());
-		menu.add(1, 3, 3, "Delete");
+		menu.add(FRAGMENT_ID, 3, 3, "Delete");
 	}
 
 	// This method is called when user selects an Item in the Context menu
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		int itemId = item.getItemId();
-		Toast.makeText(getActivity(), "Item id ["+itemId+"]", Toast.LENGTH_SHORT).show();
-		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-		if(itemId == 3){
-			Log.d(TAG, "Deleting " + info.id);
-			dataSource.deleteReminder(info.id);
-			mReminderAdapter.notifyDataSetChanged();
-            notifyDataChangedListeners();
-		}
-		return true;
-	}
+        if (item.getGroupId() == FRAGMENT_ID) {
+            int itemId = item.getItemId();
+            AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+            if (itemId == 3) {
+                Log.d(TAG, "Deleting " + info.id);
+                dataSource.deleteReminder(info.id);
+                mReminderAdapter.notifyDataSetChanged();
+                notifyDataChangedListeners();
+            }
+            return true;
+        }
+        return false;
+    }
 
     public void addDataChangedListener(DataChangedListener dcl){
         dataChangedListeners.add(dcl);
@@ -146,7 +147,7 @@ public class EditFragment extends Fragment implements DataChangedListener{
             View rowView = inflater.inflate(R.layout.reminder_edit_row, parent, false);
             Reminder r = getItem(position);
 
-            ((TextView)rowView.findViewById(R.id.name_textview)        ).setText(r.getName()       );
+            ((TextView)rowView.findViewById(R.id.name_textview)        ).setText(r.getName());
             ((TextView) rowView.findViewById(R.id.description_textview)).setText(r.getDescription());
 
             rowView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);

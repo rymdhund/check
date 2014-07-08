@@ -28,8 +28,8 @@ import android.widget.TextView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 public class HomeFragment extends Fragment implements DataChangedListener {
-	private static final String TAG = "HomeFragment";
-    //private final TabbedActivity mTabbedActivity;
+	private static final String TAG        = "HomeFragment";
+    private static final int    FRAGMENT_ID = 1;
 
     private HomeReminderAdapter mReminderAdapter;
 
@@ -74,36 +74,39 @@ public class HomeFragment extends Fragment implements DataChangedListener {
 		Reminder r =  mReminderAdapter.getItem(aInfo.position);
 
 		menu.setHeaderTitle("Options for " + r.getName());
-		menu.add(1, 1, 1, "Edit");
-		menu.add(1, 2, 2, "Uncheck");
-		menu.add(1, 3, 3, "Delete");
+		menu.add(FRAGMENT_ID, 1, 1, "Edit");
+		menu.add(FRAGMENT_ID, 2, 2, "Uncheck");
+		menu.add(FRAGMENT_ID, 3, 3, "Delete");
 	}
 
 	// This method is called when user selects an Item in the Context menu
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		int itemId = item.getItemId();
-		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-		Log.d(TAG, "context menu selected. Item "+itemId+" info.id: "+info.id);
+        if (item.getGroupId() == FRAGMENT_ID) {
+            int itemId = item.getItemId();
+            AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+            Log.d(TAG, "context menu selected. Item " + itemId + " info.id: " + info.id);
 
-		if(itemId == 1){
-			Reminder r = mReminderAdapter.getItem(info.position);
-			Intent i = new Intent(getActivity(), NewReminder.class);
-			i.putExtra(EditFragment.EXTRA_REMINDER, r);
-			startActivity(i);
-		}else if(itemId == 2){
-			dataSource.uncheckCheck(info.id);
-			mReminderAdapter.notifyDataSetChanged();
-            notifyDataChangedListeners();
-		}else if(itemId == 3){
-			Log.d(TAG, "Deleting "+info.id);
-			dataSource.deleteReminder(info.id);
-			mReminderAdapter.notifyDataSetChanged();
-            notifyDataChangedListeners();
-		}
+            if (itemId == 1) {
+                Reminder r = mReminderAdapter.getItem(info.position);
+                Intent i = new Intent(getActivity(), NewReminder.class);
+                i.putExtra(EditFragment.EXTRA_REMINDER, r);
+                startActivity(i);
+            } else if (itemId == 2) {
+                dataSource.uncheckCheck(info.id);
+                mReminderAdapter.notifyDataSetChanged();
+                notifyDataChangedListeners();
+            } else if (itemId == 3) {
+                Log.d(TAG, "Deleting " + info.id);
+                dataSource.deleteReminder(info.id);
+                mReminderAdapter.notifyDataSetChanged();
+                notifyDataChangedListeners();
+            }
 
-		return true;
-	}
+            return true;
+        }
+        return false;
+    }
 
     public void addDataChangedListener(DataChangedListener dcl){
         dataChangedListeners.add(dcl);
