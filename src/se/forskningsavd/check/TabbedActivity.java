@@ -16,142 +16,141 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 public class TabbedActivity extends FragmentActivity implements
-		ActionBar.TabListener {
+    ActionBar.TabListener {
 
-	private static final String TAG = "TabbedActivity";
+  private static final String TAG = "TabbedActivity";
 
-	/**
-	 * The {@link android.support.v4.view.PagerAdapter} that will provide
-	 * fragments for each of the sections. We use a
-	 * {@link android.support.v4.app.FragmentPagerAdapter} derivative, which
-	 * will keep every loaded fragment in memory. If this becomes too memory
-	 * intensive, it may be best to switch to a
-	 * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-	 */
-	SectionsPagerAdapter mSectionsPagerAdapter;
-    private HomeFragment mHomeFragment;
-    private EditFragment mEditFragment;
-    private HistoryFragment mHistoryFragment;
+  /**
+   * The {@link android.support.v4.view.PagerAdapter} that will provide
+   * fragments for each of the sections. We use a
+   * {@link android.support.v4.app.FragmentPagerAdapter} derivative, which
+   * will keep every loaded fragment in memory. If this becomes too memory
+   * intensive, it may be best to switch to a
+   * {@link android.support.v4.app.FragmentStatePagerAdapter}.
+   */
+  private SectionsPagerAdapter mSectionsPagerAdapter;
+  private HomeFragment         mHomeFragment;
+  private EditFragment         mEditFragment;
+  private HistoryFragment      mHistoryFragment;
 
-	/**
-	 * The {@link ViewPager} that will host the section contents.
-	 */
-	ViewPager mViewPager;
+  /**
+   * The {@link ViewPager} that will host the section contents.
+   */
+  ViewPager mViewPager;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_tabbed);
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_tabbed);
 
-		final ActionBar actionBar = getActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+    final ActionBar actionBar = getActionBar();
+    actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-        mHomeFragment = new HomeFragment();
-        mEditFragment = new EditFragment();
-        mHistoryFragment = new HistoryFragment();
+    mViewPager = (ViewPager) findViewById(R.id.pager);
+    mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        mHomeFragment.addDataChangedListener(mEditFragment);
-        mEditFragment.addDataChangedListener(mHomeFragment);
+    mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+      @Override
+      public void onPageSelected(int position) {
+        actionBar.setSelectedNavigationItem(position);
+      }
+    });
 
-		mSectionsPagerAdapter = new SectionsPagerAdapter(
-				getSupportFragmentManager());
+    mHomeFragment    = new HomeFragment();
+    mEditFragment    = new EditFragment();
+    mHistoryFragment = new HistoryFragment();
 
-		mViewPager = (ViewPager) findViewById(R.id.pager);
-		mViewPager.setAdapter(mSectionsPagerAdapter);
+    mHomeFragment.addDataChangedListener(mEditFragment);
+    mEditFragment.addDataChangedListener(mHomeFragment);
 
-		mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-					@Override
-					public void onPageSelected(int position) {
-						actionBar.setSelectedNavigationItem(position);
-					}
-				});
+    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
-		for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-			actionBar.addTab(actionBar.newTab()
-					.setText(mSectionsPagerAdapter.getPageTitle(i))
-					.setTabListener(this));
-		}
-	}
+    for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
+      actionBar.addTab(actionBar.newTab()
+          .setText(mSectionsPagerAdapter.getPageTitle(i))
+          .setTabListener(this));
+    }
+  }
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		Log.d(TAG, "action menu click");
-		  switch (item.getItemId()) {
-		  case R.id.action_new:
-			  Log.d(TAG, "new click");
-		      Intent i = new Intent(this,NewReminder.class);
-		      startActivity(i);
-		      return true;
-		  }
-		  return false;
-	}
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.main, menu);
+    return true;
+  }
 
-
-	@Override
-	public void onTabSelected(ActionBar.Tab tab,
-			FragmentTransaction fragmentTransaction) {
-		mViewPager.setCurrentItem(tab.getPosition());
-	}
-
-	@Override
-	public void onTabUnselected(ActionBar.Tab tab,
-			FragmentTransaction fragmentTransaction) {
-	}
-
-	@Override
-	public void onTabReselected(ActionBar.Tab tab,
-			FragmentTransaction fragmentTransaction) {
-	}
-
-	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-	 * one of the sections/tabs/pages.
-	 */
-	public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        public SectionsPagerAdapter(FragmentManager fm) {
-			super(fm);
-		}
-
-		@Override
-		public Fragment getItem(int position) {
-			switch (position) {
-            case 0:
-                return mHomeFragment;
-            case 1:
-                return mEditFragment;
-            case 2:
-                return mHistoryFragment;
-            default:
-                throw new ArrayIndexOutOfBoundsException();
-			}
-		}
-
-		@Override
-		public int getCount() {
-			// Show 3 total pages.
-			return 3;
-		}
-
-		@Override
-		public CharSequence getPageTitle(int position) {
-			Locale l = Locale.getDefault();
-			switch (position) {
-			case 0:
-				return getString(R.string.title_section1).toUpperCase(l);
-			case 1:
-				return getString(R.string.title_section2).toUpperCase(l);
-			case 2:
-				return getString(R.string.title_section3).toUpperCase(l);
-			}
-			return null;
-		}
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    Log.d(TAG, "action menu click");
+    switch (item.getItemId()) {
+      case R.id.action_new:
+        Log.d(TAG, "new click");
+        Intent i = new Intent(this, NewReminder.class);
+        startActivity(i);
+        return true;
+    }
+    return false;
+  }
 
 
-	}
+  @Override
+  public void onTabSelected(ActionBar.Tab tab,
+                            FragmentTransaction fragmentTransaction) {
+    mViewPager.setCurrentItem(tab.getPosition());
+  }
+
+  @Override
+  public void onTabUnselected(ActionBar.Tab tab,
+                              FragmentTransaction fragmentTransaction) {
+  }
+
+  @Override
+  public void onTabReselected(ActionBar.Tab tab,
+                              FragmentTransaction fragmentTransaction) {
+  }
+
+  /**
+   * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
+   * one of the sections/tabs/pages.
+   */
+  public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    public SectionsPagerAdapter(FragmentManager fm) {
+      super(fm);
+    }
+
+    @Override
+    public Fragment getItem(int position) {
+      switch (position) {
+        case 0:
+          return mHomeFragment;
+        case 1:
+          return mEditFragment;
+        case 2:
+          return mHistoryFragment;
+        default:
+          throw new ArrayIndexOutOfBoundsException();
+      }
+    }
+
+    @Override
+    public int getCount() {
+      // Show 3 total pages.
+      return 3;
+    }
+
+    @Override
+    public CharSequence getPageTitle(int position) {
+      Locale l = Locale.getDefault();
+      switch (position) {
+        case 0:
+          return getString(R.string.title_section1).toUpperCase(l);
+        case 1:
+          return getString(R.string.title_section2).toUpperCase(l);
+        case 2:
+          return getString(R.string.title_section3).toUpperCase(l);
+      }
+      return null;
+    }
+
+
+  }
 }

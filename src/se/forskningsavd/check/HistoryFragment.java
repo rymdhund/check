@@ -1,7 +1,6 @@
 package se.forskningsavd.check;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
@@ -27,147 +25,145 @@ import java.util.List;
 import se.forskningsavd.check.database.DataChangedListener;
 import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Check;
-import se.forskningsavd.check.model.Reminder;
 import se.forskningsavd.check.model.TimeUtils;
 
-public class HistoryFragment extends Fragment implements DataChangedListener{
-    private static final int    FRAGMENT_ID = 3;
-    private static final String TAG         = "EditFragment";
+public class HistoryFragment extends Fragment implements DataChangedListener {
+  private static final int    FRAGMENT_ID = 3;
+  private static final String TAG         = "EditFragment";
 
-    private HistoryAdapter              mAdapter;
-    private ReminderDataSource          dataSource;
-    private List<DataChangedListener>   dataChangedListeners = new ArrayList<DataChangedListener>();
+  private HistoryAdapter            mAdapter;
+  private ReminderDataSource        dataSource;
+  private List<DataChangedListener> dataChangedListeners = new ArrayList<DataChangedListener>();
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                           Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.home_fragment, container, false);
+    View view = inflater.inflate(R.layout.home_fragment, container, false);
 
-        ListView lv = (ListView) view.findViewById(R.id.reminder_listview);
+    ListView lv = (ListView) view.findViewById(R.id.reminder_listview);
 
-        dataSource = new ReminderDataSource(getActivity());
-        dataSource.open();
+    dataSource = new ReminderDataSource(getActivity());
+    dataSource.open();
 
-        mAdapter = new HistoryAdapter(getActivity(), dataSource);
+    mAdapter = new HistoryAdapter(getActivity(), dataSource);
 
-        lv.setAdapter(mAdapter);
-        registerForContextMenu(lv);
+    lv.setAdapter(mAdapter);
+    registerForContextMenu(lv);
 
-        return view;
-    }
+    return view;
+  }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenuInfo menuInfo) {
+  @Override
+  public void onCreateContextMenu(ContextMenu menu, View v,
+                                  ContextMenuInfo menuInfo) {
 
-        super.onCreateContextMenu(menu, v, menuInfo);
-        AdapterContextMenuInfo aInfo = (AdapterContextMenuInfo) menuInfo;
+    super.onCreateContextMenu(menu, v, menuInfo);
+    AdapterContextMenuInfo aInfo = (AdapterContextMenuInfo) menuInfo;
 
-        Check check =  mAdapter.getItem(aInfo.position);
+    Check check = mAdapter.getItem(aInfo.position);
 
-        menu.setHeaderTitle("Options for " + check.getReminderName());
-        menu.add(FRAGMENT_ID, 3, 3, "Delete");
-    }
+    menu.setHeaderTitle("Options for " + check.getReminderName());
+    menu.add(FRAGMENT_ID, 3, 3, "Delete");
+  }
 
-    // This method is called when user selects an Item in the Context menu
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        if(item.getGroupId() == FRAGMENT_ID) {
-            int itemId = item.getItemId();
-            Toast.makeText(getActivity(), "Item id [" + itemId + "]", Toast.LENGTH_SHORT).show();
-            AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-            if (itemId == 3) {
-                Log.d(TAG, "Deleting oo " + info.id);
-                dataSource.deleteCheck(info.id);
-                mAdapter.notifyDataSetChanged();
-                notifyDataChangedListeners();
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public void addDataChangedListener(DataChangedListener dcl){
-        dataChangedListeners.add(dcl);
-    }
-
-    @Override
-    public void onDataChanged() {
+  // This method is called when user selects an Item in the Context menu
+  @Override
+  public boolean onContextItemSelected(MenuItem item) {
+    if (item.getGroupId() == FRAGMENT_ID) {
+      int itemId = item.getItemId();
+      AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+      if (itemId == 3) {
+        Log.d(TAG, "Deleting check " + info.id);
+        dataSource.deleteCheck(info.id);
         mAdapter.notifyDataSetChanged();
+        notifyDataChangedListeners();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  public void addDataChangedListener(DataChangedListener dcl) {
+    dataChangedListeners.add(dcl);
+  }
+
+  @Override
+  public void onDataChanged() {
+    mAdapter.notifyDataSetChanged();
+  }
+
+  private void notifyDataChangedListeners() {
+    for (DataChangedListener dcl : dataChangedListeners) dcl.onDataChanged();
+  }
+
+  private class HistoryAdapter extends BaseAdapter {
+    private final Context             mContext;
+    private final ReminderDataSource  mDataSource;
+    private       List<Check>         mList;
+
+    public HistoryAdapter(Context context, ReminderDataSource dataSource) {
+      mContext = context;
+      mDataSource = dataSource;
+      mList = dataSource.getAllChecks();
     }
 
-    private void notifyDataChangedListeners(){
-        for(DataChangedListener dcl: dataChangedListeners) dcl.onDataChanged();
+    @Override
+    public void notifyDataSetChanged() {
+      mList = mDataSource.getAllChecks();
+      super.notifyDataSetChanged();
     }
 
-    private class HistoryAdapter extends BaseAdapter {
-        private final Context mContext;
-        private final ReminderDataSource mDataSource;
-        private List<Check> mList;
-
-        public HistoryAdapter(Context context, ReminderDataSource dataSource){
-            mContext = context;
-            mDataSource = dataSource;
-            mList = dataSource.getAllChecks();
-        }
-
-        @Override
-        public void notifyDataSetChanged(){
-            mList = mDataSource.getAllChecks();
-            super.notifyDataSetChanged();
-        }
-
-        @Override
-        public int getCount() {
-            return mList.size();
-        }
-
-        @Override
-        public Check getItem(int position) {
-            return mList.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return mList.get(position).getDbId();
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            LayoutInflater inflater = (LayoutInflater) mContext
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-            View rowView = inflater.inflate(R.layout.check_history_row, parent, false);
-            Check check  = getItem(position);
-
-            boolean showSeparator =
-                    position == 0 ||
-                    !TimeUtils.isSameDate(getItem(position - 1).getTimestamp(), check.getTimestamp());
-
-            TextView separator = (TextView)rowView.findViewById(R.id.separator);
-            if(showSeparator){
-                separator.setText(TimeUtils.getRelativeDay(check.getTimestamp()));
-                separator.setBackgroundColor(Color.GRAY);
-                separator.setVisibility(View.VISIBLE);
-            }else{
-                separator.setVisibility(View.GONE);
-            }
-
-            ((TextView)rowView.findViewById(R.id.check_name)).setText(check.getReminderName() + check.getDbId());
-
-            int flags = DateUtils.FORMAT_ABBREV_RELATIVE | DateUtils.FORMAT_ABBREV_TIME;
-            TextView timeView = ((TextView) rowView.findViewById(R.id.check_time));
-            timeView.setText(DateUtils.getRelativeTimeSpanString(check.getTimestamp(),
-                                                                 System.currentTimeMillis(),
-                                                                 DateUtils.MINUTE_IN_MILLIS,
-                                                                 flags));
-
-            rowView.findViewById(R.id.check_container)
-                   .getBackground()
-                   .setColorFilter(check.getReminderColor(), PorterDuff.Mode.MULTIPLY);
-
-            return rowView;
-        }
+    @Override
+    public int getCount() {
+      return mList.size();
     }
+
+    @Override
+    public Check getItem(int position) {
+      return mList.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+      return mList.get(position).getDbId();
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+      LayoutInflater inflater = (LayoutInflater) mContext
+          .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+      View rowView = inflater.inflate(R.layout.check_history_row, parent, false);
+      Check check = getItem(position);
+
+      boolean showSeparator =
+          position == 0 ||
+              !TimeUtils.isSameDate(getItem(position - 1).getTimestamp(), check.getTimestamp());
+
+      TextView separator = (TextView) rowView.findViewById(R.id.separator);
+      if (showSeparator) {
+        separator.setText(TimeUtils.getRelativeDay(check.getTimestamp()));
+        separator.setBackgroundColor(Color.GRAY);
+        separator.setVisibility(View.VISIBLE);
+      } else {
+        separator.setVisibility(View.GONE);
+      }
+
+      ((TextView) rowView.findViewById(R.id.check_name)).setText(check.getReminderName() + check.getDbId());
+
+      int flags = DateUtils.FORMAT_ABBREV_RELATIVE | DateUtils.FORMAT_ABBREV_TIME;
+      TextView timeView = ((TextView) rowView.findViewById(R.id.check_time));
+      timeView.setText(DateUtils.getRelativeTimeSpanString(check.getTimestamp(),
+          System.currentTimeMillis(),
+          DateUtils.MINUTE_IN_MILLIS,
+          flags));
+
+      rowView.findViewById(R.id.check_container)
+          .getBackground()
+          .setColorFilter(check.getReminderColor(), PorterDuff.Mode.MULTIPLY);
+
+      return rowView;
+    }
+  }
 }
