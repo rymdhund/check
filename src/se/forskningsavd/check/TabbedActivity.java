@@ -46,6 +46,21 @@ public class TabbedActivity extends FragmentActivity implements
     final ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
+    mHomeFragment    = new HomeFragment();
+    mEditFragment    = new EditFragment();
+    mHistoryFragment = new HistoryFragment();
+
+    // Make the different tabs listen to changes in the other tabs
+    mHomeFragment.addDataChangedListener(mEditFragment);
+    mHomeFragment.addDataChangedListener(mHistoryFragment);
+    mEditFragment.addDataChangedListener(mHomeFragment);
+    mEditFragment.addDataChangedListener(mHistoryFragment);
+    mHistoryFragment.addDataChangedListener(mEditFragment);
+    mHistoryFragment.addDataChangedListener(mHomeFragment);
+
+
+    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+
     mViewPager = (ViewPager) findViewById(R.id.pager);
     mViewPager.setAdapter(mSectionsPagerAdapter);
 
@@ -55,15 +70,6 @@ public class TabbedActivity extends FragmentActivity implements
         actionBar.setSelectedNavigationItem(position);
       }
     });
-
-    mHomeFragment    = new HomeFragment();
-    mEditFragment    = new EditFragment();
-    mHistoryFragment = new HistoryFragment();
-
-    mHomeFragment.addDataChangedListener(mEditFragment);
-    mEditFragment.addDataChangedListener(mHomeFragment);
-
-    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
     for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
       actionBar.addTab(actionBar.newTab()
