@@ -93,10 +93,11 @@ public class ReminderDataSource {
   public List<Reminder> getAllReminders() {
     Log.d(TAG, "Getting all reminders");
 
-    List<Reminder> reminders = new ReminderList();
+    List<Reminder> reminders = new ArrayList<Reminder>();
+    String orderBy = DatabaseHelper.COLUMN_REMINDERS_NAME + " ASC";
 
     Cursor cursor = database.query(DatabaseHelper.TABLE_REMINDERS,
-        allReminderColumns, null, null, null, null, null);
+        allReminderColumns, null, null, null, null, orderBy);
 
     cursor.moveToFirst();
     while (!cursor.isAfterLast()) {

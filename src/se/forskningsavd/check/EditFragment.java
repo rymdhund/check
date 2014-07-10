@@ -125,6 +125,12 @@ public class EditFragment extends Fragment implements DataChangedListener {
     }
 
     @Override
+    public boolean hasStableIds() {
+      // We have db ids that are stable, tell list-view so it can do more magic
+      return true;
+    }
+
+    @Override
     public int getCount() {
       return mList.size();
     }
