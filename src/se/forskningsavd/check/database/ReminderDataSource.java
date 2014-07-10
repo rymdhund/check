@@ -1,20 +1,19 @@
 package se.forskningsavd.check.database;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import se.forskningsavd.check.model.Check;
-import se.forskningsavd.check.model.Reminder;
-import se.forskningsavd.check.model.ReminderList;
-import se.forskningsavd.check.model.TimeUtils;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import se.forskningsavd.check.model.Check;
+import se.forskningsavd.check.model.Reminder;
+import se.forskningsavd.check.model.TimeUtils;
 
 public class ReminderDataSource {
   private static final String TAG = "RemindersDataSource";
