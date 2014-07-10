@@ -156,7 +156,7 @@ public class HistoryFragment extends Fragment implements DataChangedListener {
         separator.setVisibility(View.GONE);
       }
 
-      ((TextView) rowView.findViewById(R.id.check_name)).setText(check.getReminderName() + check.getDbId());
+      ((TextView) rowView.findViewById(R.id.check_name)).setText(check.getReminderName());
 
       int flags = DateUtils.FORMAT_ABBREV_RELATIVE | DateUtils.FORMAT_ABBREV_TIME;
       TextView timeView = ((TextView) rowView.findViewById(R.id.check_time));
