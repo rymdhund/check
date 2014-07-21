@@ -97,10 +97,8 @@ public class NewReminder extends Activity implements ColorPickerDialog.OnColorCh
     if (reminder != null) {
       r.setDbId(reminder.getDbId());
     }
-    ReminderDataSource rds = new ReminderDataSource(this);
-    rds.open();
+    ReminderDataSource rds = ReminderDataSource.getInstance(this);
     rds.saveReminder(r);
-    rds.close();
 
     Intent i = new Intent(this, TabbedActivity.class);
     startActivity(i);

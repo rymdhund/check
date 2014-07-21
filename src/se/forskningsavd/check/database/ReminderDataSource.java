@@ -17,9 +17,10 @@ import se.forskningsavd.check.model.TimeUtils;
 
 public class ReminderDataSource {
   private static final String TAG = "RemindersDataSource";
+  private static ReminderDataSource instance;
 
-  private SQLiteDatabase database;
   private DatabaseHelper dbHelper;
+  private ArrayList<DataChangedListener>  dataChangedListeners = new ArrayList<DataChangedListener>();
 
   private final String GET_CHECK_HISTORY_QUERY =
       "SELECT c.*,r.name, r.color FROM " + DatabaseHelper.TABLE_CHECKS + " c "
@@ -36,16 +37,23 @@ public class ReminderDataSource {
       DatabaseHelper.COLUMN_REMINDERS_COLOR
   };
 
-  public ReminderDataSource(Context context) {
+  public static ReminderDataSource getInstance(Context context){
+    if(instance == null){
+      instance = new ReminderDataSource(context);
+    }
+    return instance;
+  }
+
+  private ReminderDataSource(Context context) {
     dbHelper = new DatabaseHelper(context);
   }
 
-  public void open() throws SQLException {
-    database = dbHelper.getWritableDatabase();
+  public void addDataChangedListener(DataChangedListener dcl) {
+    dataChangedListeners.add(dcl);
   }
 
-  public void close() {
-    dbHelper.close();
+  private void notifyDataChangedListeners() {
+    for (DataChangedListener dcl : dataChangedListeners) dcl.onDataChanged();
   }
 
   public void saveReminder(Reminder reminder) {
@@ -54,9 +62,11 @@ public class ReminderDataSource {
     } else {
       updateReminder(reminder);
     }
+    notifyDataChangedListeners();
   }
 
   private void updateReminder(Reminder reminder) {
+    SQLiteDatabase db = dbHelper.getWritableDatabase();
     String        where  = DatabaseHelper.COLUMN_REMINDERS_ID + "=" + reminder.getDbId();
 
     ContentValues values = new ContentValues();
@@ -66,7 +76,7 @@ public class ReminderDataSource {
     values.put(DatabaseHelper.COLUMN_REMINDERS_MAX_COUNT,    reminder.getMaxCheckCount());
     values.put(DatabaseHelper.COLUMN_REMINDERS_COLOR,        reminder.getColor());
 
-    database.update(DatabaseHelper.TABLE_REMINDERS, values, where, null);
+    db.update(DatabaseHelper.TABLE_REMINDERS, values, where, null);
   }
 
   private void insertNewReminder(Reminder reminder) {
@@ -79,14 +89,17 @@ public class ReminderDataSource {
     values.put(DatabaseHelper.COLUMN_REMINDERS_MAX_COUNT,    reminder.getMaxCheckCount());
     values.put(DatabaseHelper.COLUMN_REMINDERS_COLOR,        reminder.getColor());
 
-    long id = database.insert(DatabaseHelper.TABLE_REMINDERS, null, values);
+    SQLiteDatabase db = dbHelper.getWritableDatabase();
+    long id = db.insert(DatabaseHelper.TABLE_REMINDERS, null, values);
     reminder.setDbId(id);
   }
 
   public void deleteReminder(long id) {
-    database.delete(
+    SQLiteDatabase db = dbHelper.getWritableDatabase();
+    db.delete(
         DatabaseHelper.TABLE_REMINDERS,
         DatabaseHelper.COLUMN_REMINDERS_ID + " = " + id, null);
+    notifyDataChangedListeners();
   }
 
   public List<Reminder> getAllReminders() {
@@ -95,7 +108,8 @@ public class ReminderDataSource {
     List<Reminder> reminders = new ArrayList<Reminder>();
     String orderBy = DatabaseHelper.COLUMN_REMINDERS_NAME + " ASC";
 
-    Cursor cursor = database.query(DatabaseHelper.TABLE_REMINDERS,
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
+    Cursor cursor = db.query(DatabaseHelper.TABLE_REMINDERS,
         allReminderColumns, null, null, null, null, orderBy);
 
     cursor.moveToFirst();
@@ -109,8 +123,9 @@ public class ReminderDataSource {
   }
 
   public Reminder getReminder(long id) {
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
     String where  = DatabaseHelper.COLUMN_REMINDERS_ID + "=" + id;
-    Cursor cursor = database.query(DatabaseHelper.TABLE_REMINDERS,
+    Cursor cursor = db.query(DatabaseHelper.TABLE_REMINDERS,
         allReminderColumns, where, null, null, null, null);
 
     Reminder reminder = null;
@@ -137,10 +152,12 @@ public class ReminderDataSource {
   }
 
   private Date getLastChecked(long id) {
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
+
     String timeColumn[] = {DatabaseHelper.COLUMN_CHECKS_TIME};
     String where        = DatabaseHelper.COLUMN_CHECKS_REMINDER_ID + "=" + id;
     String order        = DatabaseHelper.COLUMN_CHECKS_TIME + " desc";
-    Cursor cursorChecks = database.query(DatabaseHelper.TABLE_CHECKS,
+    Cursor cursorChecks = db.query(DatabaseHelper.TABLE_CHECKS,
         timeColumn,
         where,
         null, null, null, order);
@@ -155,6 +172,8 @@ public class ReminderDataSource {
   }
 
   private int getCheckCount(long reminderId) {
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
+
     long   dayStart      = TimeUtils.startOfDayTimestamp();
     long   dayEnd        = dayStart + TimeUtils.LENGTH_OF_A_DAY;
     String countColumn[] = {"COUNT(*)"};
@@ -162,7 +181,7 @@ public class ReminderDataSource {
     String where = DatabaseHelper.COLUMN_CHECKS_REMINDER_ID + "=" + reminderId
         + " and " + DatabaseHelper.COLUMN_CHECKS_TIME + " >= " + dayStart
         + " and " + DatabaseHelper.COLUMN_CHECKS_TIME + " < " + dayEnd;
-    Cursor cursorChecks = database.query(DatabaseHelper.TABLE_CHECKS,
+    Cursor cursorChecks = db.query(DatabaseHelper.TABLE_CHECKS,
         countColumn,
         where,
         null, null, null, null);
@@ -176,25 +195,25 @@ public class ReminderDataSource {
     return count;
   }
 
-  public void saveCheck(long dbId) {
+  public void saveCheck(long reminderDbId) {
+    Log.d(TAG, "save check "+reminderDbId);
+    SQLiteDatabase db = dbHelper.getWritableDatabase();
+
     ContentValues values = new ContentValues();
-    values.put(DatabaseHelper.COLUMN_CHECKS_REMINDER_ID, dbId);
+    values.put(DatabaseHelper.COLUMN_CHECKS_REMINDER_ID, reminderDbId);
     values.put(DatabaseHelper.COLUMN_CHECKS_TIME,        System.currentTimeMillis());
 
-    database.insert(DatabaseHelper.TABLE_CHECKS, null, values);
-  }
-
-  public void saveCheck(Reminder r) {
-    Log.d(TAG, "Inserting new check");
-    saveCheck(r.getDbId());
-    r.setLastChecked(new Date());
-    r.check();
+    db.insert(DatabaseHelper.TABLE_CHECKS, null, values);
+    notifyDataChangedListeners();
   }
 
   public void deleteCheck(long dbId) {
     Log.d(TAG, "delete delete " + dbId);
+
+    SQLiteDatabase db = dbHelper.getWritableDatabase();
     String deleteWhere = DatabaseHelper.COLUMN_CHECKS_ID + "=" + dbId;
-    database.delete(DatabaseHelper.TABLE_CHECKS, deleteWhere, null);
+    db.delete(DatabaseHelper.TABLE_CHECKS, deleteWhere, null);
+    notifyDataChangedListeners();
   }
 
   /**
@@ -203,10 +222,11 @@ public class ReminderDataSource {
    * @param dbId Id of reminder to uncheck
    */
   public void uncheckCheck(long dbId) {
+    SQLiteDatabase db = dbHelper.getWritableDatabase();
     String idColumn[] = {DatabaseHelper.COLUMN_CHECKS_ID};
     String where      = DatabaseHelper.COLUMN_CHECKS_REMINDER_ID + "=" + dbId;
     String order      = DatabaseHelper.COLUMN_CHECKS_TIME + " desc";
-    Cursor cursor     = database.query(DatabaseHelper.TABLE_CHECKS,
+    Cursor cursor     = db.query(DatabaseHelper.TABLE_CHECKS,
         idColumn,
         where,
         null, null, null, order);
@@ -214,26 +234,17 @@ public class ReminderDataSource {
     cursor.moveToFirst();
     if (!cursor.isAfterLast()) {
       String deleteWhere = DatabaseHelper.COLUMN_CHECKS_ID + "=" + cursor.getInt(0);
-      database.delete(DatabaseHelper.TABLE_CHECKS, deleteWhere, null);
+      db.delete(DatabaseHelper.TABLE_CHECKS, deleteWhere, null);
     }
     cursor.close();
-  }
-
-  /**
-   * Remove last check for this reminder
-   *
-   * @param r
-   */
-  public void uncheckCheck(Reminder r) {
-    uncheckCheck(r.getDbId());
-
-    r.setLastChecked(getLastChecked(r.getDbId()));
-    r.setCheckCount(getCheckCount(  r.getDbId()));
+    notifyDataChangedListeners();
   }
 
   public List<Check> getAllChecks() {
+    SQLiteDatabase db = dbHelper.getReadableDatabase();
+
     ArrayList<Check> checks = new ArrayList<Check>();
-    Cursor cursor = database.rawQuery(GET_CHECK_HISTORY_QUERY, null);
+    Cursor cursor = db.rawQuery(GET_CHECK_HISTORY_QUERY, null);
 
     cursor.moveToFirst();
     while (!cursor.isAfterLast()) {

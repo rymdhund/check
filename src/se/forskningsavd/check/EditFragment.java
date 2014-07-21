@@ -26,14 +26,13 @@ import se.forskningsavd.check.database.DataChangedListener;
 import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Reminder;
 
-public class EditFragment extends Fragment implements DataChangedListener {
+public class EditFragment extends Fragment {
   private static final   int    FRAGMENT_ID    = 2;
   private static final   String TAG            = "EditFragment";
   protected static final String EXTRA_REMINDER = "REMINDER";
 
-  private EditReminderAdapter       mReminderAdapter;
+  private EditReminderAdapter       reminderAdapter;
   private ReminderDataSource        dataSource;
-  private List<DataChangedListener> dataChangedListeners = new ArrayList<DataChangedListener>();
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -43,16 +42,16 @@ public class EditFragment extends Fragment implements DataChangedListener {
 
     ListView lv = (ListView) view.findViewById(R.id.reminder_listview);
 
-    dataSource = new ReminderDataSource(getActivity());
-    dataSource.open();
+    dataSource = ReminderDataSource.getInstance(getActivity());
 
-    mReminderAdapter = new EditReminderAdapter(getActivity(), dataSource);
+    reminderAdapter = new EditReminderAdapter(getActivity(), dataSource);
+    dataSource.addDataChangedListener(reminderAdapter);
 
-    lv.setAdapter(mReminderAdapter);
+    lv.setAdapter(reminderAdapter);
     lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       public void onItemClick(AdapterView<?> parentAdapter, View view, int position,
                               long id) {
-        Reminder r = mReminderAdapter.getItem(position);
+        Reminder r = reminderAdapter.getItem(position);
 
         Intent i = new Intent(getActivity(), NewReminder.class);
         i.putExtra(EXTRA_REMINDER, r);
@@ -71,7 +70,7 @@ public class EditFragment extends Fragment implements DataChangedListener {
     super.onCreateContextMenu(menu, v, menuInfo);
     AdapterContextMenuInfo aInfo = (AdapterContextMenuInfo) menuInfo;
 
-    Reminder r = mReminderAdapter.getItem(aInfo.position);
+    Reminder r = reminderAdapter.getItem(aInfo.position);
 
     menu.setHeaderTitle("Options for " + r.getName());
     menu.add(FRAGMENT_ID, 3, 3, "Delete");
@@ -86,28 +85,13 @@ public class EditFragment extends Fragment implements DataChangedListener {
       if (itemId == 3) {
         Log.d(TAG, "Deleting " + info.id);
         dataSource.deleteReminder(info.id);
-        mReminderAdapter.notifyDataSetChanged();
-        notifyDataChangedListeners();
       }
       return true;
     }
     return false;
   }
 
-  public void addDataChangedListener(DataChangedListener dcl) {
-    dataChangedListeners.add(dcl);
-  }
-
-  @Override
-  public void onDataChanged() {
-    mReminderAdapter.notifyDataSetChanged();
-  }
-
-  private void notifyDataChangedListeners() {
-    for (DataChangedListener dcl : dataChangedListeners) dcl.onDataChanged();
-  }
-
-  private class EditReminderAdapter extends BaseAdapter {
+  private class EditReminderAdapter extends BaseAdapter implements DataChangedListener {
     private final Context            mContext;
     private final ReminderDataSource mDataSource;
     private List<Reminder>           mList;
@@ -116,6 +100,11 @@ public class EditFragment extends Fragment implements DataChangedListener {
       mContext    = context;
       mDataSource = dataSource;
       mList       = dataSource.getAllReminders();
+    }
+
+    @Override
+    public void onDataChanged() {
+      notifyDataSetChanged();
     }
 
     @Override

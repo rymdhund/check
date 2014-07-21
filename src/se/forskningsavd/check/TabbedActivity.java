@@ -50,15 +50,6 @@ public class TabbedActivity extends FragmentActivity implements
     mEditFragment    = new EditFragment();
     mHistoryFragment = new HistoryFragment();
 
-    // Make the different tabs listen to changes in the other tabs
-    mHomeFragment.addDataChangedListener(mEditFragment);
-    mHomeFragment.addDataChangedListener(mHistoryFragment);
-    mEditFragment.addDataChangedListener(mHomeFragment);
-    mEditFragment.addDataChangedListener(mHistoryFragment);
-    mHistoryFragment.addDataChangedListener(mEditFragment);
-    mHistoryFragment.addDataChangedListener(mHomeFragment);
-
-
     mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
     mViewPager = (ViewPager) findViewById(R.id.pager);

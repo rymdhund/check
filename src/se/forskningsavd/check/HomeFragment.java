@@ -25,13 +25,12 @@ import se.forskningsavd.check.database.DataChangedListener;
 import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Reminder;
 
-public class HomeFragment extends Fragment implements DataChangedListener {
+public class HomeFragment extends Fragment {
   private static final int    FRAGMENT_ID = 1;
   private static final String TAG         = "HomeFragment";
 
   private HomeReminderAdapter             mReminderAdapter;
   private ReminderDataSource              dataSource;
-  private ArrayList<DataChangedListener>  dataChangedListeners = new ArrayList<DataChangedListener>();
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -40,19 +39,17 @@ public class HomeFragment extends Fragment implements DataChangedListener {
     View view = inflater.inflate(R.layout.home_fragment, container, false);
     ListView lv = (ListView) view.findViewById(R.id.reminder_listview);
 
-    dataSource = new ReminderDataSource(getActivity());
-    dataSource.open();
+    dataSource = ReminderDataSource.getInstance(getActivity());
 
     mReminderAdapter = new HomeReminderAdapter(getActivity(), dataSource);
+    dataSource.addDataChangedListener(mReminderAdapter);
 
     lv.setAdapter(mReminderAdapter);
     lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       public void onItemClick(AdapterView<?> parentAdapter, View view, int position,
                               long id) {
         Reminder r = mReminderAdapter.getItem(position);
-        dataSource.saveCheck(r);
-        mReminderAdapter.notifyDataSetChanged();
-        notifyDataChangedListeners();
+        dataSource.saveCheck(r.getDbId());
       }
     });
     registerForContextMenu(lv);
@@ -89,12 +86,8 @@ public class HomeFragment extends Fragment implements DataChangedListener {
         startActivity(i);
       } else if (itemId == 2) {
         dataSource.uncheckCheck(info.id);
-        mReminderAdapter.notifyDataSetChanged();
-        notifyDataChangedListeners();
       } else if (itemId == 3) {
         dataSource.deleteReminder(info.id);
-        mReminderAdapter.notifyDataSetChanged();
-        notifyDataChangedListeners();
       }
 
       return true;
@@ -102,20 +95,9 @@ public class HomeFragment extends Fragment implements DataChangedListener {
     return false;
   }
 
-  public void addDataChangedListener(DataChangedListener dcl) {
-    dataChangedListeners.add(dcl);
-  }
 
-  @Override
-  public void onDataChanged() {
-    mReminderAdapter.notifyDataSetChanged();
-  }
 
-  private void notifyDataChangedListeners() {
-    for (DataChangedListener dcl : dataChangedListeners) dcl.onDataChanged();
-  }
-
-  private class HomeReminderAdapter extends BaseAdapter {
+  private class HomeReminderAdapter extends BaseAdapter  implements DataChangedListener{
     private final Context mContext;
     private final ReminderDataSource mDataSource;
     private List<Reminder> mList;
@@ -130,6 +112,11 @@ public class HomeFragment extends Fragment implements DataChangedListener {
     public boolean hasStableIds() {
       // We have db ids that are stable, tell list-view so it can do more magic
       return true;
+    }
+
+    @Override
+    public void onDataChanged() {
+      notifyDataSetChanged();
     }
 
     @Override

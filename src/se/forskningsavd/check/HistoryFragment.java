@@ -27,13 +27,12 @@ import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Check;
 import se.forskningsavd.check.model.TimeUtils;
 
-public class HistoryFragment extends Fragment implements DataChangedListener {
+public class HistoryFragment extends Fragment {
   private static final int    FRAGMENT_ID = 3;
   private static final String TAG         = "EditFragment";
 
-  private HistoryAdapter            mAdapter;
+  private HistoryAdapter            adapter;
   private ReminderDataSource        dataSource;
-  private List<DataChangedListener> dataChangedListeners = new ArrayList<DataChangedListener>();
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -43,12 +42,11 @@ public class HistoryFragment extends Fragment implements DataChangedListener {
 
     ListView lv = (ListView) view.findViewById(R.id.reminder_listview);
 
-    dataSource = new ReminderDataSource(getActivity());
-    dataSource.open();
+    dataSource = ReminderDataSource.getInstance(getActivity());
 
-    mAdapter = new HistoryAdapter(getActivity(), dataSource);
-
-    lv.setAdapter(mAdapter);
+    adapter = new HistoryAdapter(getActivity(), dataSource);
+    dataSource.addDataChangedListener(adapter);
+    lv.setAdapter(adapter);
     registerForContextMenu(lv);
 
     return view;
@@ -61,7 +59,7 @@ public class HistoryFragment extends Fragment implements DataChangedListener {
     super.onCreateContextMenu(menu, v, menuInfo);
     AdapterContextMenuInfo aInfo = (AdapterContextMenuInfo) menuInfo;
 
-    Check check = mAdapter.getItem(aInfo.position);
+    Check check = adapter.getItem(aInfo.position);
 
     menu.setHeaderTitle("Options for " + check.getReminderName());
     menu.add(FRAGMENT_ID, 3, 3, "Delete");
@@ -76,28 +74,15 @@ public class HistoryFragment extends Fragment implements DataChangedListener {
       if (itemId == 3) {
         Log.d(TAG, "Deleting check " + info.id);
         dataSource.deleteCheck(info.id);
-        mAdapter.notifyDataSetChanged();
-        notifyDataChangedListeners();
       }
       return true;
     }
     return false;
   }
 
-  public void addDataChangedListener(DataChangedListener dcl) {
-    dataChangedListeners.add(dcl);
-  }
 
-  @Override
-  public void onDataChanged() {
-    mAdapter.notifyDataSetChanged();
-  }
 
-  private void notifyDataChangedListeners() {
-    for (DataChangedListener dcl : dataChangedListeners) dcl.onDataChanged();
-  }
-
-  private class HistoryAdapter extends BaseAdapter {
+  private class HistoryAdapter extends BaseAdapter implements DataChangedListener{
     private final Context             mContext;
     private final ReminderDataSource  mDataSource;
     private       List<Check>         mList;
@@ -106,6 +91,10 @@ public class HistoryFragment extends Fragment implements DataChangedListener {
       mContext = context;
       mDataSource = dataSource;
       mList = dataSource.getAllChecks();
+    }
+    @Override
+    public void onDataChanged() {
+      notifyDataSetChanged();
     }
 
     @Override
