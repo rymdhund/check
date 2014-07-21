@@ -3,7 +3,6 @@ package se.forskningsavd.check.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
@@ -21,12 +20,6 @@ public class ReminderDataSource {
 
   private DatabaseHelper dbHelper;
   private ArrayList<DataChangedListener>  dataChangedListeners = new ArrayList<DataChangedListener>();
-
-  private final String GET_CHECK_HISTORY_QUERY =
-      "SELECT c.*,r.name, r.color FROM " + DatabaseHelper.TABLE_CHECKS + " c "
-          + "INNER JOIN " + DatabaseHelper.TABLE_REMINDERS + " r "
-          + "ON c." + DatabaseHelper.COLUMN_CHECKS_REMINDER_ID + "=r." + DatabaseHelper.COLUMN_REMINDERS_ID
-          + " ORDER BY c.time DESC";
 
   private String[] allReminderColumns = {
       DatabaseHelper.COLUMN_REMINDERS_ID,
@@ -244,7 +237,11 @@ public class ReminderDataSource {
     SQLiteDatabase db = dbHelper.getReadableDatabase();
 
     ArrayList<Check> checks = new ArrayList<Check>();
-    Cursor cursor = db.rawQuery(GET_CHECK_HISTORY_QUERY, null);
+    Cursor cursor = db.rawQuery(
+        "SELECT c.*,r.name, r.color FROM " + DatabaseHelper.TABLE_CHECKS + " c "
+        + "INNER JOIN " + DatabaseHelper.TABLE_REMINDERS + " r "
+        + "ON c." + DatabaseHelper.COLUMN_CHECKS_REMINDER_ID + "=r." + DatabaseHelper.COLUMN_REMINDERS_ID
+        + " ORDER BY c.time DESC", null);
 
     cursor.moveToFirst();
     while (!cursor.isAfterLast()) {

@@ -28,11 +28,6 @@ public class Reminder implements Serializable {
     this(name, dayInterval, count, maxCount, color, 0);
   }
 
-
-  public Reminder(String name, int dayInterval, int color) {
-    this(name, dayInterval, 0, 1, color);
-  }
-
   public boolean isDone() {
     return count >= maxCount;
   }
@@ -45,16 +40,8 @@ public class Reminder implements Serializable {
     return name;
   }
 
-  public void uncheck() {
-    if (count > 0) count--;
-  }
-
   public int getCheckCount() {
     return count;
-  }
-
-  public void setCheckCount(int checkCount) {
-    count = checkCount;
   }
 
   public int getMaxCheckCount() {
@@ -92,10 +79,6 @@ public class Reminder implements Serializable {
 
   public int getDayInterval() {
     return dayInterval;
-  }
-
-  public void setColor(int color) {
-    this.color = color;
   }
 
   public String getDescription() {
