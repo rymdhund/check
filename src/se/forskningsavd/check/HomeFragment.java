@@ -18,7 +18,6 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import se.forskningsavd.check.database.DataChangedListener;
@@ -98,14 +97,14 @@ public class HomeFragment extends Fragment {
 
 
   private class HomeReminderAdapter extends BaseAdapter  implements DataChangedListener{
-    private final Context mContext;
-    private final ReminderDataSource mDataSource;
-    private List<Reminder> mList;
+    private final Context context;
+    private final ReminderDataSource dataSource;
+    private List<Reminder> reminderList;
 
     public HomeReminderAdapter(Context context, ReminderDataSource dataSource) {
-      mContext = context;
-      mDataSource = dataSource;
-      mList = dataSource.getDueReminders();
+      this.context    = context;
+      this.dataSource = dataSource;
+      reminderList    = dataSource.getDueReminders();
     }
 
     @Override
@@ -121,44 +120,46 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void notifyDataSetChanged() {
-      mList = mDataSource.getDueReminders();
+      reminderList = dataSource.getDueReminders();
       super.notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-      return mList.size();
+      return reminderList.size();
     }
 
     @Override
     public Reminder getItem(int position) {
-      return mList.get(position);
+      return reminderList.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-      return mList.get(position).getDbId();
+      return reminderList.get(position).getDbId();
     }
 
     @Override
-    public View getView(int position, View view, ViewGroup parent) {
-      LayoutInflater inflater = (LayoutInflater) mContext
+    public View getView(int position, View convertView, ViewGroup parent) {
+      LayoutInflater inflater = (LayoutInflater) context
           .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-      View     rowView  = inflater.inflate(R.layout.reminder_row, parent, false);
+      if(convertView == null) {
+        convertView = inflater.inflate(R.layout.reminder_row, parent, false);
+      }
       Reminder r        = getItem(position);
-      TextView doneView = (TextView) rowView.findViewById(R.id.done_textview);
+      TextView doneView = (TextView) convertView.findViewById(R.id.done_textview);
 
       if (r.isDone()) doneView.setText("[done]");
       else if (r.getCheckCount() > 0)
         doneView.setText("" + r.getCheckCount() + "/" + r.getMaxCheckCount());
       else doneView.setText("");
 
-      ((TextView) rowView.findViewById(R.id.name_textview)).setText(r.getName());
+      ((TextView) convertView.findViewById(R.id.name_textview)).setText(r.getName());
 
-      rowView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
+      convertView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
 
-      return rowView;
+      return convertView;
     }
   }
 }

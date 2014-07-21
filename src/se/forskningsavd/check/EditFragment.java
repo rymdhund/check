@@ -17,9 +17,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import se.forskningsavd.check.database.DataChangedListener;
@@ -92,14 +90,14 @@ public class EditFragment extends Fragment {
   }
 
   private class EditReminderAdapter extends BaseAdapter implements DataChangedListener {
-    private final Context            mContext;
-    private final ReminderDataSource mDataSource;
-    private List<Reminder>           mList;
+    private final Context            context;
+    private final ReminderDataSource dataSource;
+    private List<Reminder>           reminderList;
 
     public EditReminderAdapter(Context context, ReminderDataSource dataSource) {
-      mContext    = context;
-      mDataSource = dataSource;
-      mList       = dataSource.getAllReminders();
+      this.context            = context;
+      this.dataSource         = dataSource;
+      this.reminderList       = dataSource.getAllReminders();
     }
 
     @Override
@@ -109,7 +107,7 @@ public class EditFragment extends Fragment {
 
     @Override
     public void notifyDataSetChanged() {
-      mList = mDataSource.getAllReminders();
+      reminderList = dataSource.getAllReminders();
       super.notifyDataSetChanged();
     }
 
@@ -121,32 +119,34 @@ public class EditFragment extends Fragment {
 
     @Override
     public int getCount() {
-      return mList.size();
+      return reminderList.size();
     }
 
     @Override
     public Reminder getItem(int position) {
-      return mList.get(position);
+      return reminderList.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-      return mList.get(position).getDbId();
+      return reminderList.get(position).getDbId();
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      LayoutInflater inflater = (LayoutInflater) mContext
+      LayoutInflater inflater = (LayoutInflater) context
           .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-      View rowView = inflater.inflate(R.layout.reminder_edit_row, parent, false);
+
+      if(convertView == null)
+        convertView = inflater.inflate(R.layout.reminder_edit_row, parent, false);
       Reminder r = getItem(position);
 
-      ((TextView) rowView.findViewById(R.id.name_textview)       ).setText(r.getName()       );
-      ((TextView) rowView.findViewById(R.id.description_textview)).setText(r.getDescription());
+      ((TextView) convertView.findViewById(R.id.name_textview)       ).setText(r.getName()       );
+      ((TextView) convertView.findViewById(R.id.description_textview)).setText(r.getDescription());
 
-      rowView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
+      convertView.findViewById(R.id.inner_row).getBackground().setColorFilter(r.getColor(), PorterDuff.Mode.MULTIPLY);
 
-      return rowView;
+      return convertView;
     }
   }
 }

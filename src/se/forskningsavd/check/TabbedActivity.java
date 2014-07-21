@@ -20,22 +20,10 @@ public class TabbedActivity extends FragmentActivity implements
 
   private static final String TAG = "TabbedActivity";
 
-  /**
-   * The {@link android.support.v4.view.PagerAdapter} that will provide
-   * fragments for each of the sections. We use a
-   * {@link android.support.v4.app.FragmentPagerAdapter} derivative, which
-   * will keep every loaded fragment in memory. If this becomes too memory
-   * intensive, it may be best to switch to a
-   * {@link android.support.v4.app.FragmentStatePagerAdapter}.
-   */
-  private SectionsPagerAdapter mSectionsPagerAdapter;
-  private HomeFragment         mHomeFragment;
-  private EditFragment         mEditFragment;
-  private HistoryFragment      mHistoryFragment;
+  private HomeFragment         homeFragment;
+  private EditFragment         editFragment;
+  private HistoryFragment      historyFragment;
 
-  /**
-   * The {@link ViewPager} that will host the section contents.
-   */
   ViewPager mViewPager;
 
   @Override
@@ -46,11 +34,11 @@ public class TabbedActivity extends FragmentActivity implements
     final ActionBar actionBar = getActionBar();
     actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-    mHomeFragment    = new HomeFragment();
-    mEditFragment    = new EditFragment();
-    mHistoryFragment = new HistoryFragment();
+    homeFragment    = new HomeFragment();
+    editFragment    = new EditFragment();
+    historyFragment = new HistoryFragment();
 
-    mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
+    SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
     mViewPager = (ViewPager) findViewById(R.id.pager);
     mViewPager.setAdapter(mSectionsPagerAdapter);
@@ -118,11 +106,11 @@ public class TabbedActivity extends FragmentActivity implements
     public Fragment getItem(int position) {
       switch (position) {
         case 0:
-          return mHomeFragment;
+          return homeFragment;
         case 1:
-          return mEditFragment;
+          return editFragment;
         case 2:
-          return mHistoryFragment;
+          return historyFragment;
         default:
           throw new ArrayIndexOutOfBoundsException();
       }
@@ -147,7 +135,5 @@ public class TabbedActivity extends FragmentActivity implements
       }
       return null;
     }
-
-
   }
 }

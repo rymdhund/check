@@ -17,9 +17,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import se.forskningsavd.check.database.DataChangedListener;
@@ -83,14 +81,14 @@ public class HistoryFragment extends Fragment {
 
 
   private class HistoryAdapter extends BaseAdapter implements DataChangedListener{
-    private final Context             mContext;
-    private final ReminderDataSource  mDataSource;
-    private       List<Check>         mList;
+    private final Context             context;
+    private final ReminderDataSource  dataSource;
+    private       List<Check>         checkList;
 
     public HistoryAdapter(Context context, ReminderDataSource dataSource) {
-      mContext = context;
-      mDataSource = dataSource;
-      mList = dataSource.getAllChecks();
+      this.context    = context;
+      this.dataSource = dataSource;
+      checkList       = dataSource.getAllChecks();
     }
     @Override
     public void onDataChanged() {
@@ -99,7 +97,7 @@ public class HistoryFragment extends Fragment {
 
     @Override
     public void notifyDataSetChanged() {
-      mList = mDataSource.getAllChecks();
+      checkList = dataSource.getAllChecks();
       super.notifyDataSetChanged();
     }
 
@@ -111,32 +109,33 @@ public class HistoryFragment extends Fragment {
 
     @Override
     public int getCount() {
-      return mList.size();
+      return checkList.size();
     }
 
     @Override
     public Check getItem(int position) {
-      return mList.get(position);
+      return checkList.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-      return mList.get(position).getDbId();
+      return checkList.get(position).getDbId();
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      LayoutInflater inflater = (LayoutInflater) mContext
+      LayoutInflater inflater = (LayoutInflater) context
           .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-      View rowView = inflater.inflate(R.layout.check_history_row, parent, false);
+      if(convertView == null)
+        convertView = inflater.inflate(R.layout.check_history_row, parent, false);
       Check check = getItem(position);
 
       boolean showSeparator =
           position == 0 ||
               !TimeUtils.isSameDate(getItem(position - 1).getTimestamp(), check.getTimestamp());
 
-      TextView separator = (TextView) rowView.findViewById(R.id.separator);
+      TextView separator = (TextView) convertView.findViewById(R.id.separator);
       if (showSeparator) {
         separator.setText(TimeUtils.getRelativeDay(check.getTimestamp()));
         separator.setBackgroundColor(Color.GRAY);
@@ -145,20 +144,20 @@ public class HistoryFragment extends Fragment {
         separator.setVisibility(View.GONE);
       }
 
-      ((TextView) rowView.findViewById(R.id.check_name)).setText(check.getReminderName());
+      ((TextView) convertView.findViewById(R.id.check_name)).setText(check.getReminderName());
 
       int flags = DateUtils.FORMAT_ABBREV_RELATIVE | DateUtils.FORMAT_ABBREV_TIME;
-      TextView timeView = ((TextView) rowView.findViewById(R.id.check_time));
+      TextView timeView = ((TextView) convertView.findViewById(R.id.check_time));
       timeView.setText(DateUtils.getRelativeTimeSpanString(check.getTimestamp(),
           System.currentTimeMillis(),
           DateUtils.MINUTE_IN_MILLIS,
           flags));
 
-      rowView.findViewById(R.id.check_container)
+      convertView.findViewById(R.id.check_container)
           .getBackground()
           .setColorFilter(check.getReminderColor(), PorterDuff.Mode.MULTIPLY);
 
-      return rowView;
+      return convertView;
     }
   }
 }
