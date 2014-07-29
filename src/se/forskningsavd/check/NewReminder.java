@@ -31,6 +31,7 @@ public class NewReminder extends FragmentActivity implements ColorPickerDialogFr
     reminder = (Reminder) intent.getSerializableExtra(EditFragment.EXTRA_REMINDER);
 
     if (reminder != null) {
+      setTitle("Edit reminder");
       ((EditText) findViewById(R.id.name_edittext)     ).setText(reminder.getName());
       ((EditText) findViewById(R.id.interval_edittext) ).setText("" + reminder.getDayInterval());
       ((EditText) findViewById(R.id.max_count_edittext)).setText("" + reminder.getMaxCheckCount());
@@ -42,6 +43,7 @@ public class NewReminder extends FragmentActivity implements ColorPickerDialogFr
         findViewById(R.id.text2            ).setEnabled(true);
       }
     } else {
+      setTitle("New reminder");
       ((EditText) findViewById(R.id.interval_edittext) ).setText("1");
       ((EditText) findViewById(R.id.max_count_edittext)).setText("1");
       color = randomColor();

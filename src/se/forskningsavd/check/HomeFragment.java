@@ -67,7 +67,7 @@ public class HomeFragment extends Fragment {
 
     menu.setHeaderTitle("Options for " + r.getName());
     menu.add(FRAGMENT_ID, 1, 1, "Edit");
-    menu.add(FRAGMENT_ID, 2, 2, "Uncheck");
+    if(r.getCheckCount() > 0) menu.add(FRAGMENT_ID, 2, 2, "Uncheck");
     menu.add(FRAGMENT_ID, 3, 3, "Delete");
   }
 
