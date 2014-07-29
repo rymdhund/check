@@ -18,6 +18,7 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.Iterator;
 import java.util.List;
 
 import se.forskningsavd.check.database.DataChangedListener;
@@ -97,7 +98,18 @@ public class EditFragment extends Fragment {
     public EditReminderAdapter(Context context, ReminderDataSource dataSource) {
       this.context            = context;
       this.dataSource         = dataSource;
-      this.reminderList       = dataSource.getAllReminders();
+      updateReminders();
+    }
+
+    private void updateReminders(){
+      // show all reminders except one-timers that we already checked
+      reminderList = dataSource.getAllReminders();
+      Iterator<Reminder> iter = reminderList.iterator();
+      while(iter.hasNext()){
+        Reminder r = iter.next();
+        if(r.getDayInterval() == 0 && !r.isDue())
+          iter.remove();
+      }
     }
 
     @Override
@@ -107,7 +119,7 @@ public class EditFragment extends Fragment {
 
     @Override
     public void notifyDataSetChanged() {
-      reminderList = dataSource.getAllReminders();
+      updateReminders();
       super.notifyDataSetChanged();
     }
 
