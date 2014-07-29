@@ -8,6 +8,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import se.forskningsavd.check.model.Check;
@@ -255,17 +256,15 @@ public class ReminderDataSource {
   }
 
   public List<Reminder> getDueReminders() {
-    // TODO: optimize
     Log.d(TAG, "Getting due reminders");
 
-    List<Reminder> all = getAllReminders();
-    List<Reminder> due = new ArrayList<Reminder>();
+    List<Reminder> reminders = getAllReminders();
 
-    for (Reminder r : all) {
-      if (r.isDue()) {
-        due.add(r);
-      }
+    Iterator<Reminder> iter = reminders.iterator();
+    while(iter.hasNext()){
+      if(!iter.next().isDue()) iter.remove();
     }
-    return due;
+
+    return reminders;
   }
 }
