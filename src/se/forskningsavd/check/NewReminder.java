@@ -1,8 +1,9 @@
 package se.forskningsavd.check;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -14,7 +15,7 @@ import java.util.Random;
 import se.forskningsavd.check.database.ReminderDataSource;
 import se.forskningsavd.check.model.Reminder;
 
-public class NewReminder extends Activity implements ColorPickerDialog.OnColorChangedListener {
+public class NewReminder extends FragmentActivity implements ColorPickerDialogFragment.OnColorChangedListener {
   private static final String TAG         = "NewReminder";
   private static final String STATE_COLOR = "reminderColor";
 
@@ -53,11 +54,11 @@ public class NewReminder extends Activity implements ColorPickerDialog.OnColorCh
 
     findViewById(R.id.color_view).setBackgroundColor(color);
 
-    final NewReminder parent = this;
     findViewById(R.id.color_view).setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        new ColorPickerDialog(parent, parent, color).show();
+        DialogFragment dialogFragment = new ColorPickerDialogFragment();
+        dialogFragment.show(NewReminder.this.getSupportFragmentManager(), "abc");
       }
     });
   }
@@ -106,7 +107,7 @@ public class NewReminder extends Activity implements ColorPickerDialog.OnColorCh
 
   private int randomColor() {
     Random r = new Random();
-    return r.nextInt();
+    return ColorPickerDialogFragment.colors[r.nextInt(ColorPickerDialogFragment.colors.length)];
   }
 
   @Override
